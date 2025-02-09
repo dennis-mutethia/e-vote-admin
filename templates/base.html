@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+{% include 'head.html' %}
+
+<body>
+	<div class="wrapper">
+		<div class="main-header">
+			<!-- Logo Header -->
+			<div class="logo-header" data-background-color="dark2">
+
+				<a href="index.html" class="logo" style="color: white;">e-VOTE
+					<!-- <img src="{{ url_for('static', filename='assets/img/logo.svg') }}" alt="navbar brand"
+						class="navbar-brand"> -->
+				</a>
+				<button class="navbar-toggler sidenav-toggler ml-auto" type="button" data-toggle="collapse"
+					data-target="collapse" aria-expanded="false" aria-label="Toggle navigation">
+					<span class="navbar-toggler-icon">
+						<i class="icon-menu"></i>
+					</span>
+				</button>
+			</div>
+			<!-- End Logo Header -->
+
+			<!-- Navbar Header -->
+			<nav class="navbar navbar-header navbar-expand-lg" data-background-color="dark">
+
+
+			</nav>
+			<!-- End Navbar -->
+		</div>
+
+		{% include 'sidebar.html' %}
+
+		{% include 'scripts.html' %}
+
+		<div class="main-panel">
+			<div class="content">
+				{% block content %}
+				<!-- Default content goes here -->
+				{% endblock %}
+			</div>
+
+			<footer class="footer">
+				<div class="container-fluid">
+					<div class="copyright ml-auto">
+						All Rights Reserved <i class="fa fa-copyright heart text-danger"></i>
+						<a href="https://www.matrixsys.co.ke">Matrix Systems</a>
+					</div>
+				</div>
+			</footer>
+		</div>
+	</div>
+<script>
+    $(document).ready(function () {
+        {% if success %}
+        $.notify({
+            icon: 'fa fa-bell',
+            message: '{{ success }}'
+
+        },{
+            type: 'success',
+            timer: 1000,
+            placement: {
+                from: 'top',
+                align: 'right'
+            }
+        });
+        {% endif %}
+        {% if error %}  
+        $.notify({
+            icon: 'fa fa-bell',
+            message: '{{ error }}'
+
+        },{
+            type: 'danger',
+            timer: 1000,
+            placement: {
+                from: 'top',
+                align: 'right'
+            }
+        });
+        {% endif %}
+    });
+</script>
+</body>
+
+</html>

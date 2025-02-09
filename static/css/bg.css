@@ -1,0 +1,19 @@
+@import url('https://fonts.googleapis.com/css?family=Exo:400,700');
+
+
+body{
+    font-family: 'Exo', sans-serif;
+    font-size: 13px;
+  margin: 0;
+  -webkit-background-size: 100% auto;
+  -moz-background-size: 100% auto;
+  -o-background-size: 100% auto;
+  background-size: 100% auto;
+  background-position: center top;
+  background-repeat:  no-repeat;
+  background-attachment: fixed;
+  background-image: url("img/bg.jpg");
+  background: blue;  /* fallback for old browsers */
+  background: -webkit-linear-gradient(to right, #3f4c6b, #606c88);  /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(to right, #3f4c6b, #606c88); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  }

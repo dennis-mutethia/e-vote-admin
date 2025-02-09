@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ hotspot.client.name }} FREE Wi-Fi</title>
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='images/favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fontawesome-all.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+
+<body>
+    <div class="row text-center header" style="background-color: {{ hotspot.client.backgroundColor }};">
+        <h4 class="header" style="background-color: {{ hotspot.client.backgroundColor }}; color: {{ hotspot.client.foregroundColor }};">{{ hotspot.client.name }} FREE Wi-Fi</h4>
+    </div>
+
+    <div class="demo">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-offset-3 col-md-6">
+                    <h4 class="text-primary text-center"><u>Terms and Conditions</u></h4>
+                    By accepting this agreement and accessing the {{ hotspot.client.name }} FREE Wi-Fi, you acknowledge
+                    that you are
+                    of legal age, you have read and understood, and agree to be bound by this agreement.<br />
+                    <ul>
+                        <li> {{ hotspot.client.name }} FREE Wi-Fi is provided by {{ hotspot.client.name }}, and is
+                            completely at their discretion.
+                            Your access to the network may be blocked, suspended, or terminated at any time for
+                            any reason.</li>
+                        <li> You agree not to use the wireless network for any purpose that is unlawful or otherwise
+                            prohibited
+                            and you are fully responsible for your use.</li>
+                        <li> The wireless network is provided &quot;as is&quot; without warranties of any kind, either
+                            expressed or implied</li>
+                    </ul>
+                    <h5 class="text-primary">Limitations of {{ hotspot.client.name }} FREE Wi-Fi Network Access:</h5>
+                    We are not liable for any damage, undesired resource usage, or detrimental effects that may occur to
+                    a
+                    user&#39;s device and/or software while the user’s device is attached to the free Wi-Fi Network.
+                    <br />
+                    The user is responsible for any actions taken from his or her device, whether intentional or
+                    unintentional, that
+                    damage or otherwise affect other devices or users of the Service.
+
+                    <h5 class="text-primary">Changes to Service:</h5>
+                    We reserve the right to change the Service offered, the features of the Service offered, the terms
+                    of this
+                    Policy, or its system without prior notice to the user.<br />
+                    By clicking the Connect button at the login portal, you acknowledge that you understand
+                    and agree to these terms and conditions.
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--js-->
+</body>
+
+</html>

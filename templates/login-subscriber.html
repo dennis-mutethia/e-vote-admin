@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ hotspot.client.name }} FREE Wi-Fi</title>
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='images/favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fontawesome-all.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/vanzj.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <style>
+        iframe {
+            width: 100%;
+            border: none;
+            height: 360px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="row text-center header" style="background-color: {{ hotspot.client.background_color }};">
+        <h4 class="header"
+            style="background-color: {{ hotspot.client.background_color }}; color: {{ hotspot.client.foreground_color }};">
+            {{ hotspot.client.name }} FREE Wi-Fi</h4>
+    </div>
+
+    <div class="demo">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-offset-3 col-md-6">
+
+                    <iframe id="advideo"
+                        src="https://www.youtube.com/embed/{{ video.video_id }}?playlist={{ video.video_id }}&loop=1&enablejsapi=1&rel=0&modestbranding=1&showinfo=0&controls=0&disablekb=1&autoplay=1&mute=1"
+                        allow="autoplay; encrypted-media" allowfullscreen>
+                    </iframe>
+
+
+                    <h6 class="text-primary text-center">Enter Your Valid Phone Number Below and Enjoy Super Fast Free
+                        WIFI <br />
+                        Powered by {{ hotspot.client.name }}</h6>
+
+                    <input type="number" class="form-control" id="adphone" name="adphone" class="text-bold warning"
+                        placeholder="Phone No. e.g 07123456789" />
+                    <h6 id="notice" class="text-center text-danger"></h6>
+
+                    <button id="adconnectbutton" type="button" class="btn btn-success btn-block" onclick="connect();"
+                        >Tap this Button after the Ad Video has played</button>
+                    <br />
+
+                    <!--Sliding Picture Start-->
+                    <div class="slidingImage">
+                        <div class="slider">
+                            <div class="slides">
+                                <!-- Generate radio buttons -->
+                                {% for image in images %}
+                                <input type="radio" name="radio-btn" id="radio{{ loop.index }}">
+                                {% endfor %}
+
+                                <!-- Generate slides -->
+                                {% for image in images %}
+                                <div class="slide {{ 'first' if loop.index == 1 }}">
+                                    <img src="https://i.postimg.cc/{{ image.image_id }}" alt="">
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <!-- Navigation auto -->
+                            <div class="navigation-auto">
+                                {% for image in images %}
+                                <div class="auto-btn{{ loop.index }}"></div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- JavaScript for Auto-Slide -->
+                        <script type="text/javascript">
+                            var totalSlides = {{ images | length }}; // Total number of images
+                            var counter = 1;
+
+                            setInterval(function () {
+                                // Select the radio button corresponding to the current slide
+                                document.getElementById('radio' + counter).checked = true;
+
+                                counter++;
+                                if (counter > totalSlides) {
+                                    counter = 1; // Reset to the first slide
+                                }
+                            }, 3000); // Adjust the timing as needed
+                        </script>
+                    </div>
+                    <!--Sliding Picture End-->
+                    
+                    <hr />
+                    <h5 class="text-center">For Support or Advertisement Queries</h5>
+                    <ul class="list-unstyled text-center">
+                        <li>Call us on<a href="tel:0759697757">&nbsp;0759 69 77 57</a></li>
+                        <br />
+                        <li class="text-muted"><a href="{{ url_for('terms') }}?hotspot_id={{ hotspot.id }}">Terms and
+                                Conditions</a> apply</li>
+                    </ul>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--js-->
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/md5.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-1.12.4.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <script type="text/javascript">
+        var player;
+
+        // This function is called by the YouTube API once it's loaded
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('advideo', {
+                events: {
+                    'onReady': onPlayerReady
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            // Set up your click handler
+            document.onclick = function () {
+                // Check if the video is muted and unmute it
+                if (player.isMuted()) {
+                    player.unMute();
+                }
+
+                // Enable the button after 30 seconds
+                setTimeout(function () {
+                    const connectButton = document.getElementById('adconnectbutton');
+                    if (connectButton) {
+                        connectButton.innerHTML = 'Connect';
+                        connectButton.disabled = false; // Enable the button
+                        connect(); // Call the connect function
+                    }
+                }, 30000);
+            };
+        }
+
+        $(document).ready(function () {
+            $('#adphone').focus();
+        });
+
+
+        function connect() {
+            let phone = $('#adphone').val().trim();
+            if (phone.length === 10) {                
+                let url = "{{ link_login_only }}";
+                $.post(url, {
+                    username: '{{ hotspot.hotspot_username }}',
+                    password: '{{ hotspot.hotspot_password }}',
+                },
+                    function (data, status) {
+                        console.log(status)
+                        console.log(data);
+                    });
+                location.href = '{{ link_login_only }}';
+            }
+            else $('#notice').html('Enter Valid Phone Number');
+
+            return false;
+        }
+
+        $('#adphone').on('keyup', function () {
+            let phone = $('#adphone').val().trim();
+            if (phone.length === 10) {
+                $('#notice').html('');
+                let url = "{{ url_for('addSubscriber') }}";
+                $.post(url, {
+                    link_login_only: '{{ link_login_only }}',
+                    phone: '254' + phone.slice(-9),
+                    hotspot_id: '{{ hotspot.id }}'
+                },
+                    function (data, status) {
+                        console.log(data);
+                    });
+            } else {
+                $('#notice').html('Enter Valid Phone Number');
+            }
+        });
+
+    </script>
+</body>
+
+</html>

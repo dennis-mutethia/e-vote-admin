@@ -1,0 +1,139 @@
+html {
+    background-color: white;
+}
+
+.header {
+    background-color: red;
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    /* Ensure it's on top of other content */
+    display: flex;
+    justify-content: center;
+    /* Center the content horizontally */
+    align-items: flex-end;
+    /* Align text at the bottom */
+    height: 80px;
+    /* Set height for the header */
+}
+
+
+a:hover,
+a:focus {
+    outline: none;
+    text-decoration: none;
+}
+
+.tab {}
+
+.tab .nav-tabs li {
+    margin-bottom: 0;
+    display: block;
+}
+
+.tab .nav-tabs li a {
+    color: #222;
+    background: #fff;
+    border-radius: 0;
+    padding: 15px;
+    margin-right: 0;
+    border: none;
+    position: relative;
+    transition: all 0.3s ease 0s;
+}
+
+.tab .nav-tabs li.active a,
+.tab .nav-tabs li.active a:focus,
+.tab .nav-tabs li.active a:hover {
+    border: none;
+    color: #666;
+}
+
+.tab .nav-tabs li.active a:before,
+.tab .nav-tabs li a:before {
+    content: "";
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-top: 4px solid blue;
+    opacity: 0;
+    transition: all 0.5s ease 0s;
+}
+
+.tab .nav-tabs li.active a:before,
+.tab .nav-tabs li.active a:hover:before {
+    top: -3px;
+    opacity: 1;
+}
+
+.tab .nav-tabs li a:hover:before {
+    top: -4px;
+    opacity: 1;
+}
+
+.tab .nav-tabs li.active a:after,
+.tab .nav-tabs li a:after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 45%;
+    border: 7px solid transparent;
+    border-top: 7px solid #0091a0;
+    opacity: 0;
+    transition: all 0.5s ease 0s;
+}
+
+.tab .nav-tabs li.active a:after,
+.tab .nav-tabs li a:hover:after {
+    top: -1px;
+    opacity: 1;
+}
+
+.tab .tab-content {
+    font-size: 14px;
+    color: #999;
+    padding: 10px;
+    border-top: none;
+}
+
+/*Bootstrap button outline override*/
+.btn-outline {
+    background-color: transparent;
+    color: inherit;
+    transition: all .5s;
+    font-weight: bolder;
+}
+
+.btn-primary.btn-outline {
+    color: #428bca;
+}
+
+.btn-success.btn-outline {
+    color: #5cb85c;
+}
+
+.btn-info.btn-outline {
+    color: #5bc0de;
+}
+
+.btn-warning.btn-outline {
+    color: #f0ad4e;
+}
+
+.btn-danger.btn-outline {
+    color: #d9534f;
+}
+
+.btn-primary.btn-outline:hover,
+.btn-success.btn-outline:hover,
+.btn-info.btn-outline:hover,
+.btn-warning.btn-outline:hover,
+.btn-danger.btn-outline:hover {
+    color: #fff;
+}
+
+input {
+    text-align: center;
+}

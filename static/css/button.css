@@ -1,0 +1,40 @@
+.buttonLogout{
+  background: rgba(176, 172, 150, 0.7);
+  border: 1px solid #768191;
+  border-radius:10px;
+  color: #0a5af0;
+  font-weight: bold;
+  text-align: center;
+  vertical-align: middle;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  width: 80%;
+  height: 40px;
+  /*animation:tiltText 4s infinite;*/
+  }
+
+
+
+@keyframes tiltText {
+0%{
+  background-image: linear-gradient(to right, #c7f50f 0%, #cc2e06 100%);
+  }
+20%{
+  background-image: linear-gradient(to right, #8eb8f5 0%, #99bf0d 100%);
+  }
+40%{
+  background-image: linear-gradient(to right, #c7f50f 0%, #cc2e06 100%);
+  }
+60%{
+  background-image: linear-gradient(to right, #8eb8f5 0%, #99bf0d 100%);
+  }
+80%{
+  background-image: linear-gradient(to right, #c7f50f 0%, #cc2e06 100%);
+  }
+100%{
+  background-image: linear-gradient(to right, #8eb8f5 0%, #99bf0d 100%);
+  }
