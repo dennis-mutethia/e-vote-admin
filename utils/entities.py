@@ -59,9 +59,18 @@ class PollingStation():
         self.ttl_voters = ttl_voters
         
 class Election():
-    def __init__(self, id, name):
+    def __init__(self, id, code, name, ttl_candidates):
+        self.id = id
+        self.code = int(code)
+        self.name = name
+        self.ttl_candidates = ttl_candidates
+        
+class Party():
+    def __init__(self, id, name, icon, ttl_candidates):
         self.id = id
         self.name = name
+        self.icon = icon
+        self.ttl_candidates = ttl_candidates
 
 class Voter():
     def __init__(self, id, id_number, first_name, last_name, other_name, phone, polling_station_id, polling_station_name):

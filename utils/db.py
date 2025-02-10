@@ -2,7 +2,7 @@ from flask_login import current_user
 import os, psycopg2
 import uuid
 
-from utils.entities import Candidate, Constituency, County, Election, MyVote, PollingStation, Voter, Ward
+from utils.entities import Candidate, Constituency, County, Election, MyVote, Party, PollingStation, Voter, Ward
 
 class Db():
     def __init__(self):
@@ -525,3 +525,151 @@ class Db():
         except Exception as e:
             print(e)
             return None
+    
+    def insert_election_type(self, code, name):
+        id = str(uuid.uuid5(uuid.NAMESPACE_DNS, (f'{code}-{name}')))
+        self.ensure_connection()
+        try:
+            with self.conn.cursor() as cursor:
+                query = f"INSERT INTO {self.schema}.elections (id, code, name) VALUES (%s, %s, %s)"
+                cursor.execute(query, (id, code, name))
+                self.conn.commit()
+                return True
+        except Exception as e:
+            print(e)
+            return False
+    
+    def update_election_type(self, id, code, name):
+        self.ensure_connection()
+        try:
+            with self.conn.cursor() as cursor:
+                query = f"UPDATE {self.schema}.elections SET code = %s, name = %s WHERE id = %s"
+                cursor.execute(query, (code, name, id))
+                self.conn.commit()
+                return True
+        except Exception as e:
+            print(e)
+            return False
+    
+    def get_election_types(self):
+        self.ensure_connection()
+        try:
+            with self.conn.cursor() as cursor:
+                query = f"""
+                WITH candidates AS(
+                    SELECT election_id, COUNT(*) AS ttl_candidates FROM {self.schema}.candidates 
+                    GROUP BY election_id
+                )
+                SELECT id, code, name, ttl_candidates
+                FROM {self.schema}.elections
+                LEFT JOIN candidates ON elections.id = candidates.election_id
+                ORDER BY code
+                """
+                cursor.execute(query)
+                data = cursor.fetchall()
+                elections = []
+                for datum in data:
+                    elections.append(Election(datum[0], datum[1], datum[2], datum[3]))
+                
+                return elections
+        except Exception as e:
+            print(e)
+            return []            
+    
+    def insert_party(self, name, icon):
+        id = str(uuid.uuid5(uuid.NAMESPACE_DNS, (f'{name}')))
+        self.ensure_connection()
+        try:
+            with self.conn.cursor() as cursor:
+                query = f"INSERT INTO {self.schema}.parties (id, name, icon) VALUES (%s, %s, %s)"
+                cursor.execute(query, (id, name, icon))
+                self.conn.commit()
+                return True
+        except Exception as e:
+            print(e)
+            return False
+    
+    def update_party(self, id, name, icon):
+        self.ensure_connection()
+        try:
+            with self.conn.cursor() as cursor:
+                query = f"UPDATE {self.schema}.parties SET name = %s, icon = %s WHERE id = %s"
+                cursor.execute(query, (name, icon, id))
+                self.conn.commit()
+                return True
+        except Exception as e:
+            print(e)
+            return False
+    
+    def delete_party(self, id):
+        self.ensure_connection()
+        try:
+            with self.conn.cursor() as cursor:
+                query = f"DELETE FROM {self.schema}.parties WHERE id = %s"
+                cursor.execute(query, (id,))
+                self.conn.commit()
+                return True
+        except Exception as e:
+            print(e)
+            return False
+        
+    def get_parties(self):
+        self.ensure_connection()
+        try:
+            with self.conn.cursor() as cursor:
+                query = f"""
+                WITH candidates AS(
+                    SELECT party_id, COUNT(*) AS ttl_candidates FROM {self.schema}.candidates 
+                    GROUP BY party_id
+                )
+                SELECT id, name, icon, ttl_candidates
+                FROM {self.schema}.parties
+                LEFT JOIN candidates ON parties.id = candidates.party_id
+                ORDER BY parties.name
+                """
+                cursor.execute(query)
+                data = cursor.fetchall()
+                elections = []
+                for datum in data:
+                    elections.append(Party(datum[0], datum[1], datum[2], datum[3]))
+                
+                return elections
+        except Exception as e:
+            print(e)
+            return []            
+    
+    def get_registered_voters(self, polling_station_id=None, ward_id=None, constituency_id=None, county_id=None):
+        self.ensure_connection()
+        try:
+            with self.conn.cursor() as cursor:
+                query = f"""SELECT COUNT(*)
+                FROM {self.schema}.voters
+                JOIN {self.schema}.polling_stations ON polling_station_id = polling_stations.id 
+                JOIN {self.schema}.wards ON ward_id = wards.id   
+                JOIN {self.schema}.constituencies ON constituency_id = constituencies.id
+                WHERE 1=1      
+                """
+                params = []
+                if polling_station_id is not None:
+                    query = f"{query} AND polling_station_id = %s"
+                    params.append(polling_station_id)
+                if ward_id is not None:
+                    query = f"{query} AND ward_id = %s"
+                    params.append(ward_id)
+                if constituency_id is not None:
+                    query = f"{query} AND constituency_id = %s"
+                    params.append(constituency_id)
+                if county_id is not None:
+                    query = f"{query} AND county_id = %s"
+                    params.append(county_id)
+                
+                cursor.execute(query, params)
+                data = cursor.fetchone()
+                print(data)
+                if data:
+                    return data[0]
+                else:
+                    return 0
+        except Exception as e:
+            print(e)
+            return 0

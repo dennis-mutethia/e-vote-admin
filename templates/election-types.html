@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-inner">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex align-items-center">
+                    <h4 class="card-title">Election Types</h4>
+                    <button class="btn btn-success btn-round ml-auto" data-toggle="modal" data-target="#addElectionTypeModal"
+                        onclick="addElectionType()">
+                        <i class="fa fa-plus"></i>
+                        Add ElectionType
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="add-row" class="display table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th class="text-center">CODE</th>
+                                <th>Election Type</th>
+                                <th class="text-center">Candidates</th>
+                                <th class="text-center" style="width: 10%">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for election_type in election_types %}
+                            <tr>
+                                <td class="text-center">{{ '%03d' % election_type.code }}</td>
+                                <td>{{ election_type.name }}</td>
+                                <td class="text-center">
+                                    {% if election_type.ttl_candidates %}
+                                        <a href="{{ url_for('candidates', election=election_type.id) }}">{{ election_type.ttl_candidates }}</a>
+                                    {% else %}
+                                        0
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="form-button-action">
+                                        <button type="button" title="Edit this ElectionType" data-toggle="modal"
+                                            data-target="#addElectionTypeModal"
+                                            onclick="editElectionType('{{ election_type.id }}', {{ election_type.code }}, '{{ election_type.name }}')"
+                                            class="btn btn-link btn-primary btn-lg"
+                                            data-original-title="Edit this ElectionType">
+                                            <i class="fa fa-edit"></i>
+                                        </button>
+                                        <button type="button" title="Remove this ElectionType" data-toggle="modal"
+                                            data-target="#removeElectionTypeModal"
+                                            onclick="removeElectionType('{{ election_type.id }}', '{{ election_type.name }}')"
+                                            class="btn btn-link btn-danger" data-original-title="Remove this ElectionType">
+                                            <i class="fa fa-times"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<div class="modal fade" id="addElectionTypeModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="POST">
+                <input id="editElectionTypeId" name="editElectionTypeId" type="hidden">
+                <div class="modal-header no-bd">
+                    <h5 class="modal-title">
+                        <span id="action_label" class="fw-mediumbold">
+                            Add New</span>
+                        <span class="fw-light">
+                            ElectionType
+                        </span>
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="form-group form-group-default">
+                                <label>ElectionType Code</label>
+                                <input id="ElectionTypeCode" name="ElectionTypeCode" type="number"
+                                    class="form-control" placeholder="ElectionType Code" required>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="form-group form-group-default">
+                                <label>ElectionType Name</label>
+                                <input id="ElectionTypeName" name="ElectionTypeName" type="text"
+                                    class="form-control" placeholder="ElectionType Name" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer no-bd">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                    <button type="submit" id="addElectionTypeButton" name="action" value="add"
+                        class="btn btn-success">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="removeElectionTypeModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="POST">
+                <input id="removeElectionTypeId" name="removeElectionTypeId" type="hidden">
+                <div class="modal-header no-bd">
+                    <h5 class="modal-title">
+                        <span class="fw-mediumbold">
+                            Are you sure you want to Remove </span>
+                        <span class="fw-light" id="removeElectionTypeName"></span>
+                        ElectionType
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Click Confirm Remove to Completely Remove this ElectionType.</p>
+                    <small class="text-danger">THIS ACTION IS NOT REVERSIBLE</small>
+                </div>
+                <div class="modal-footer no-bd">
+                    <button type="button" class="btn btn-warning" data-dismiss="modal">Close</button>
+                    <button type="submit" id="removeElectionTypeButton" name="action" value="remove"
+                        class="btn btn-danger">Confirm Remove</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        // Add Row
+        $('#add-row').DataTable({
+            "pageLength": 5,
+        });
+    });
+
+    function addElectionType() {
+        $('#action_label').html('Add New');
+        $('#editElectionTypeId').val(null);
+        $('#ElectionTypeCode').val(null);
+        $('#ElectionTypeName').val(null);
+        $('#addElectionTypeButton').val('add');
+    }
+
+    function editElectionType(id, code, name) {
+        $('#action_label').html('Edit');
+        $('#editElectionTypeId').val(id);
+        $('#ElectionTypeCode').val(code);
+        $('#ElectionTypeName').val(name);
+        $('#addElectionTypeButton').val('edit');
+    }
+
+    function removeElectionType(id, name) {
+        $('#removeElectionTypeId').val(id);
+        $('#removeElectionTypeName').html(name);
+    }
+</script>
+
+{% endblock %}

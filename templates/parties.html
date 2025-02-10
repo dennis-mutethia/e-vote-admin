@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-inner">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex align-items-center">
+                    <h4 class="card-title">Political Parties</h4>
+                    <button class="btn btn-success btn-round ml-auto" data-toggle="modal" data-target="#addPartyModal"
+                        onclick="addParty()">
+                        <i class="fa fa-plus"></i>
+                        Add Party
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="add-row" class="display table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Party Name</th>
+                                <th class="text-center">Icon</th>
+                                <th class="text-center">Candidates</th>
+                                <th class="text-center" style="width: 10%">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for party in parties %}
+                            <tr>
+                                <td>{{ party.name }}</td>
+                                <td class="text-center avatar-sm">
+                                    <img src="{{ url_for('static', filename='assets/img/parties/' + party.icon) }}"
+                                        alt="{{ party.icon }}" class="avatar-img rounded-circle">
+                                </td>
+                                <td class="text-center">
+                                    {% if party.ttl_candidates %}
+                                        <a href="{{ url_for('candidates', party=party.id) }}">{{ party.ttl_candidates }}</a>
+                                    {% else %}
+                                        0
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="form-button-action">
+                                        <button type="button" title="Edit this Party" data-toggle="modal"
+                                            data-target="#addPartyModal"
+                                            onclick="editParty('{{ party.id }}', '{{ party.name }}')"
+                                            class="btn btn-link btn-primary btn-lg"
+                                            data-original-title="Edit this Party">
+                                            <i class="fa fa-edit"></i>
+                                        </button>
+                                        <button type="button" title="Remove this Party" data-toggle="modal"
+                                            data-target="#removePartyModal"
+                                            onclick="removeParty('{{ party.id }}', '{{ party.name }}')"
+                                            class="btn btn-link btn-danger" data-original-title="Remove this Party">
+                                            <i class="fa fa-times"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<div class="modal fade" id="addPartyModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="POST" enctype="multipart/form-data">
+                <input id="editPartyId" name="editPartyId" type="hidden">
+                <div class="modal-header no-bd">
+                    <h5 class="modal-title">
+                        <span id="action_label" class="fw-mediumbold">
+                            Add New</span>
+                        <span class="fw-light">
+                            Party
+                        </span>
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="form-group form-group-default">
+                                <label>Party Name</label>
+                                <input id="PartyName" name="PartyName" type="text"
+                                    class="form-control" placeholder="Party Name" required>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="form-group form-group-default">
+                                <label>Party Icon</label>
+                                <input id="PartyIcon" name="PartyIcon" type="file" accept="image/*"
+                                    class="form-control" placeholder="Party Icon" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer no-bd">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                    <button type="submit" id="addPartyButton" name="action" value="add"
+                        class="btn btn-success">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="removePartyModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="POST">
+                <input id="removePartyId" name="removePartyId" type="hidden">
+                <div class="modal-header no-bd">
+                    <h5 class="modal-title">
+                        <span class="fw-mediumbold">
+                            Are you sure you want to Remove </span>
+                        <span class="fw-light" id="removePartyName"></span>
+                        Party
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Click Confirm Remove to Completely Remove this Party.</p>
+                    <small class="text-danger">THIS ACTION IS NOT REVERSIBLE</small>
+                </div>
+                <div class="modal-footer no-bd">
+                    <button type="button" class="btn btn-warning" data-dismiss="modal">Close</button>
+                    <button type="submit" id="removePartyButton" name="action" value="remove"
+                        class="btn btn-danger">Confirm Remove</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        // Add Row
+        $('#add-row').DataTable({
+            "pageLength": 5,
+        });
+    });
+
+    function addParty() {
+        $('#action_label').html('Add New');
+        $('#editPartyId').val(null);
+        $('#PartyName').val(null);
+        $('#addPartyButton').val('add');
+    }
+
+    function editParty(id, name) {
+        $('#action_label').html('Edit');
+        $('#editPartyId').val(id);
+        $('#PartyName').val(name);
+        $('#addPartyButton').val('edit');
+    }
+
+    function removeParty(id, name) {
+        $('#removePartyId').val(id);
+        $('#removePartyName').html(name);
+    }
+</script>
+
+{% endblock %}
