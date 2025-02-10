@@ -44,8 +44,10 @@ class Wards():
             if request.form['action'] == 'edit':
                 success, error = self.edit()
         
+        county_id = request.args.get('county') or None
+        counties = self.db.get_counties()
         constituency_id = request.args.get('constituency') or None
-        constituencies = self.db.get_constituencies()
-        wards = self.db.get_wards(constituency_id)  
-        return render_template('wards.html', constituencies=constituencies, constituency_id=constituency_id, wards=wards, success=success, error=error, 
+        constituencies = self.db.get_constituencies(county_id)
+        wards = self.db.get_wards(constituency_id, county_id)  
+        return render_template('wards.html', counties=counties, county_id=county_id, constituencies=constituencies, constituency_id=constituency_id, wards=wards, success=success, error=error, 
                                menu='electoral_units', page='wards')

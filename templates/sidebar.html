@@ -45,7 +45,7 @@
                         <p>Dashboard</p>
                     </a>
                 </li>                  
-                <li class="nav-item">
+                <li class="nav-item {{ 'active' if menu=='electoral_units' }}">
                     <a data-toggle="collapse" href="#base">
                         <i class="fas fa-coins"></i>
                         <p>Electoral Units</p>
@@ -75,7 +75,13 @@
                             </li>
                         </ul>
                     </div>
-                </li>            
+                </li>                  
+                <li class="nav-item {{ 'active' if menu=='voters_register' }}">
+                    <a href="{{ url_for('voters_register') }}">
+                        <i class="fas fa-users"></i>
+                        <p>Voters Register</p>
+                    </a>
+                </li>                
                 <li class="nav-item {{ 'active' if page=='hotspots' }}">
                     <a href="#hotspots">
                         <i class="fas fa-desktop"></i>
@@ -93,13 +99,7 @@
                         <i class="far fa-chart-bar"></i>
                         <p>Subscribers</p>
                     </a>
-                </li>                   
-                <li class="nav-item {{ 'active' if page=='users' }}">
-                    <a href="#users">
-                        <i class="fas fa-users"></i>
-                        <p>System Users</p>
-                    </a>
-                </li>              
+                </li>           
                 <li class="nav-item {{ 'active' if page=='settings' }}">
                     <a href="#base">
                         <i class="fas fa-cogs"></i>

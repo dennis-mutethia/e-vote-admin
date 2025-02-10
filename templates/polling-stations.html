@@ -6,19 +6,43 @@
         <div class="card">
             <div class="card-header">
                 <div class="d-flex align-items-center">
-                    <h4 class="card-title">Polling Stations</h4>
-                    <div class="col-sm-2"></div>
-                    <div class="col-sm-4 text-center">
-                        <form id="filterForm" method="GET" class="form-group form-group-default">
-                            <label>Filter by Ward</label>                                
-                            <select class="form-control input-sm" name="ward" required onchange="document.getElementById('filterForm').submit()">
-                                <option value="">ALL WARDS</option>
-                                {% for ward in wards %}
-                                <option value="{{ ward.id }}" {{ 'selected' if ward_id==ward.id }}>{{ ward.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </form>
-                    </div>
+                    <h4 class="card-title pull-right">Polling Stations</h4>
+                    
+                    <form id="filterForm" class="row card-title" method="GET">
+                        <div class="col-lg-4 text-center">
+                            <div class="form-group form-group-default">
+                                <label>Filter by County</label>                                
+                                <select class="form-control input-sm" name="county" required onchange="document.getElementById('filterForm').submit()">
+                                    <option value="">Select County</option>
+                                    {% for county in counties %}
+                                    <option value="{{ county.id }}" {{ 'selected' if county_id==county.id }} >{{ county.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>                        
+                        <div class="col-4 text-center">
+                            <div class="form-group form-group-default">
+                                <label>Filter by Constituency</label>                                
+                                <select class="form-control input-sm" name="constituency" required onchange="document.getElementById('filterForm').submit()">
+                                    <option value="">Select Constituency</option>
+                                    {% for constituency in constituencies %}
+                                    <option value="{{ constituency.id }}" {{ 'selected' if constituency_id==constituency.id }} >{{ constituency.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>                    
+                        <div class="col-4 text-center">
+                            <div class="form-group form-group-default">
+                                <label>Filter by Ward</label>                                
+                                <select class="form-control input-sm" name="ward" required onchange="document.getElementById('filterForm').submit()">
+                                    <option value="">Select Ward</option>
+                                    {% for ward in wards %}
+                                    <option value="{{ ward.id }}" {{ 'selected' if ward_id==ward.id }}>{{ ward.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </form>
 
                     <button class="btn btn-success btn-round ml-auto" data-toggle="modal" data-target="#addPollingStationModal"
                         onclick="addPollingStation()">
@@ -35,6 +59,7 @@
                                 <th class="text-center">CODE</th>
                                 <th>POLLING STATION NAME</th>
                                 <th>WARD NAME</th>
+                                <th class="text-center">VOTERS</th>
                                 <th class="text-center" style="width: 10%">Action</th>
                             </tr>
                         </thead>
@@ -43,7 +68,14 @@
                             <tr>
                                 <td class="text-center">{{ '%03d' % polling_station.code }}</td>
                                 <td>{{ polling_station.name }}</td>
-                                <td>{{ polling_station.ward_name }}</td>
+                                <td>{{ polling_station.ward_name }}</td>                         
+                                <td class="text-center">
+                                    {% if polling_station.ttl_voters %}
+                                        <a href="{{ url_for('voters_register', station=polling_station.id) }}">{{ polling_station.ttl_voters }}</a>
+                                    {% else %}
+                                        0
+                                    {% endif %}
+                                </td>
                                 <td>
                                     <div class="form-button-action">
                                         <button type="button" title="Edit this PollingStation" data-toggle="modal"

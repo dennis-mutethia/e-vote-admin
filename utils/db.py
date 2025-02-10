@@ -125,7 +125,7 @@ class Db():
                 if county_id is not None:
                     query = f"{query} WHERE county_id = %s"
                     params.append(county_id)
-                query = f"{query} ORDER BY code"
+                query = f"{query} ORDER BY constituencies.code"
                 cursor.execute(query, tuple(params))
                 data = cursor.fetchall()
                 constituencies = []
@@ -162,7 +162,7 @@ class Db():
             print(e)
             return False
       
-    def get_wards(self, constituency_id=None):
+    def get_wards(self, constituency_id=None, county_id=None):
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
@@ -174,13 +174,17 @@ class Db():
                 SELECT wards.id, wards.code, wards.name, constituency_id, constituencies.name, ttl_stations
                 FROM {self.schema}.wards
                 JOIN {self.schema}.constituencies ON constituency_id = constituencies.id
-                LEFT JOIN stations ON wards.id = stations.ward_id                
+                LEFT JOIN stations ON wards.id = stations.ward_id 
+                WHERE 1=1               
                 """
                 params = []
                 if constituency_id is not None:
-                    query = f"{query} WHERE constituency_id = %s"
+                    query = f"{query} AND constituency_id = %s"
                     params.append(constituency_id)
-                query = f"{query} ORDER BY code"
+                if county_id is not None:
+                    query = f"{query} AND county_id = %s"
+                    params.append(county_id)
+                query = f"{query} ORDER BY wards.code"
                 cursor.execute(query, tuple(params))
                 data = cursor.fetchall()
                 wards = []
@@ -191,9 +195,8 @@ class Db():
         except Exception as e:
             print(e)
             return []
-     
-    def insert_polling_station(self, code, ward_id, name):
-        id = str(uuid.uuid5(uuid.NAMESPACE_DNS, (f'{code}-{ward_id}-{name}')))
+            
+    def insert_polling_station(self, id, code, ward_id, name):
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
@@ -216,28 +219,129 @@ class Db():
         except Exception as e:
             print(e)
             return False
+    
+    def delete_polling_station(self, id):
+        self.ensure_connection()
+        try:
+            with self.conn.cursor() as cursor:
+                query = f"DELETE FROM {self.schema}.polling_stations WHERE id = %s"
+                cursor.execute(query, (id,))
+                self.conn.commit()
+                return True
+        except Exception as e:
+            print(e)
+            return False
       
-    def get_polling_stations(self, ward_id=None):
+    def get_polling_stations(self, ward_id=None, constituency_id=None, county_id=None):
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
                 query = f"""
-                SELECT polling_stations.id, polling_stations.code, polling_stations.name, ward_id, wards.name
+                WITH voters AS(
+                    SELECT polling_station_id, COUNT(*) AS ttl_voters FROM {self.schema}.voters 
+                    GROUP BY polling_station_id
+                )
+                SELECT polling_stations.id, polling_stations.code, polling_stations.name, ward_id, wards.name, ttl_voters
                 FROM {self.schema}.polling_stations
-                JOIN {self.schema}.wards ON ward_id = wards.id        
+                JOIN {self.schema}.wards ON ward_id = wards.id   
+                JOIN {self.schema}.constituencies ON constituency_id = constituencies.id
+                LEFT JOIN voters ON polling_stations.id = voters.polling_station_id    
+                WHERE 1=1                 
                 """
                 params = []
                 if ward_id is not None:
-                    query = f"{query} WHERE ward_id = %s"
+                    query = f"{query} AND ward_id = %s"
                     params.append(ward_id)
-                query = f"{query} ORDER BY code"
+                if constituency_id is not None:
+                    query = f"{query} AND constituency_id = %s"
+                    params.append(constituency_id)
+                if county_id is not None:
+                    query = f"{query} AND county_id = %s"
+                    params.append(county_id)
+                query = f"{query} ORDER BY polling_stations.code"
                 cursor.execute(query, tuple(params))
                 data = cursor.fetchall()
                 polling_stations = []
                 for datum in data:
-                    polling_stations.append(PollingStation(datum[0], datum[1], datum[2], datum[3], datum[4]))
+                    polling_stations.append(PollingStation(datum[0], datum[1], datum[2], datum[3], datum[4], datum[5]))
                                     
                 return polling_stations
+        except Exception as e:
+            print(e)
+            return []
+                  
+    def insert_voter(self, id, id_number, first_name, last_name, other_name, phone, polling_station_id, fingerprint_hash):
+        self.ensure_connection()
+        try:
+            with self.conn.cursor() as cursor:
+                query = f"""INSERT INTO {self.schema}.voters (id, id_number, first_name, last_name, other_name, phone, polling_station_id, fingerprint_hash) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
+                cursor.execute(query, (id, id_number, first_name, last_name, other_name, phone, polling_station_id, fingerprint_hash))
+                self.conn.commit()
+                return True
+        except Exception as e:
+            print(e)
+            return False
+    
+    def update_voter(self, id, id_number, first_name, last_name, other_name, phone, polling_station_id, fingerprint_hash):
+        self.ensure_connection()
+        try:
+            with self.conn.cursor() as cursor:
+                query = f"""UPDATE {self.schema}.voters SET 
+                id_number = %s, first_name=%s, last_name = %s, other_name = %s, phone=%s, polling_station_id = %s, fingerprint_hash = %s
+                WHERE id = %s"""
+                cursor.execute(query, (id_number, first_name, last_name, other_name, phone, polling_station_id, fingerprint_hash, id))
+                self.conn.commit()
+                return True
+        except Exception as e:
+            print(e)
+            return False
+    
+    def delete_voter(self, id):
+        self.ensure_connection()
+        try:
+            with self.conn.cursor() as cursor:
+                query = f"DELETE FROM {self.schema}.voters WHERE id = %s"
+                cursor.execute(query, (id,))
+                self.conn.commit()
+                return True
+        except Exception as e:
+            print(e)
+            return False
+      
+    def get_voters(self, polling_station_id=None, ward_id=None, constituency_id=None, county_id=None):
+        self.ensure_connection()
+        try:
+            with self.conn.cursor() as cursor:
+                query = f"""
+                SELECT voters.id, id_number, first_name, last_name, other_name, phone, polling_station_id, polling_stations.name
+                FROM {self.schema}.voters
+                JOIN {self.schema}.polling_stations ON polling_station_id = polling_stations.id 
+                JOIN {self.schema}.wards ON ward_id = wards.id   
+                JOIN {self.schema}.constituencies ON constituency_id = constituencies.id
+                WHERE 1=1       
+                """
+                params = []
+                if polling_station_id is not None:
+                    query = f"{query} AND polling_station_id = %s"
+                    params.append(polling_station_id)
+                if ward_id is not None:
+                    query = f"{query} AND ward_id = %s"
+                    params.append(ward_id)
+                if constituency_id is not None:
+                    query = f"{query} AND constituency_id = %s"
+                    params.append(constituency_id)
+                if county_id is not None:
+                    query = f"{query} AND county_id = %s"
+                    params.append(county_id)
+                query = f"{query} ORDER BY id_number"
+                cursor.execute(query, tuple(params))
+                data = cursor.fetchall()
+                voters = []
+                for datum in data:
+                    voters.append(Voter(datum[0], datum[1], datum[2], datum[3], datum[4], datum[5], datum[6], datum[7]))
+                                    
+                return voters
         except Exception as e:
             print(e)
             return []
@@ -369,13 +473,12 @@ class Db():
             print(e)
             return False
     
-    def create_sms_codes_partition(self, polling_station_id):
+    def create_partition(self, name, polling_station_id):
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"""CREATE TABLE IF NOT EXISTS {self.schema}.sms_codes_{polling_station_id.replace('-', '_')} 
-                PARTITION OF {self.schema}.sms_codes FOR VALUES IN ('{polling_station_id}')
-                """
+                query = f"""CREATE TABLE IF NOT EXISTS {self.schema}.{name}_{polling_station_id.replace('-', '_')} 
+                PARTITION OF {self.schema}.{name} FOR VALUES IN ('{polling_station_id}')"""
                 cursor.execute(query)
                 self.conn.commit()
                 return True
@@ -383,19 +486,18 @@ class Db():
             print(e)
             return False 
     
-    def create_votes_partition(self, polling_station_id):
+    def delete_partition(self, name, polling_station_id):
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"""CREATE TABLE IF NOT EXISTS {self.schema}.votes_{polling_station_id.replace('-', '_')} 
-                PARTITION OF {self.schema}.votes FOR VALUES IN ('{polling_station_id}')"""
+                query = f"DROP TABLE IF EXISTS {self.schema}.{name}_{polling_station_id.replace('-', '_')}"
                 cursor.execute(query)
                 self.conn.commit()
                 return True
         except Exception as e:
             print(e)
             return False 
-      
+    
     def get_my_votes(self):
         self.ensure_connection()
         try:

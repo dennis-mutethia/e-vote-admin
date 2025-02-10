@@ -9,6 +9,7 @@ from utils.counties import Counties
 from utils.constituencies import Constituencies
 from utils.wards import Wards
 from utils.polling_stations import PollingStations
+from utils.voters_register import VotersRegister
 
 load_dotenv()
 
@@ -41,6 +42,10 @@ def wards():
 @app.route('/polling-stations', methods=['GET', 'POST'])
 def polling_stations(): 
     return PollingStations(db)() 
+
+@app.route('/voters-register', methods=['GET', 'POST'])
+def voters_register(): 
+    return VotersRegister(db)() 
 
 if __name__ == '__main__':
     debug_mode = os.getenv('IS_DEBUG', 'False') in ['True', 'T', 't', '1']
