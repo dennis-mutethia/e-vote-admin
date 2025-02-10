@@ -30,8 +30,7 @@
                             <tr>
                                 <td>{{ party.name }}</td>
                                 <td class="text-center avatar-sm">
-                                    <img src="{{ url_for('static', filename='assets/img/parties/' + party.icon) }}"
-                                        alt="{{ party.icon }}" class="avatar-img rounded-circle">
+                                    <img src="{{ party.icon }}" alt="party icon" class="avatar-img rounded-circle">
                                 </td>
                                 <td class="text-center">
                                     {% if party.ttl_candidates %}
@@ -44,7 +43,7 @@
                                     <div class="form-button-action">
                                         <button type="button" title="Edit this Party" data-toggle="modal"
                                             data-target="#addPartyModal"
-                                            onclick="editParty('{{ party.id }}', '{{ party.name }}')"
+                                            onclick="editParty('{{ party.id }}', '{{ party.name }}', '{{ party.icon }}')"
                                             class="btn btn-link btn-primary btn-lg"
                                             data-original-title="Edit this Party">
                                             <i class="fa fa-edit"></i>
@@ -71,7 +70,7 @@
 <div class="modal fade" id="addPartyModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <form method="POST" enctype="multipart/form-data">
+            <form method="POST">
                 <input id="editPartyId" name="editPartyId" type="hidden">
                 <div class="modal-header no-bd">
                     <h5 class="modal-title">
@@ -97,8 +96,8 @@
                         <div class="col-sm-12">
                             <div class="form-group form-group-default">
                                 <label>Party Icon</label>
-                                <input id="PartyIcon" name="PartyIcon" type="file" accept="image/*"
-                                    class="form-control" placeholder="Party Icon" required>
+                                <input id="PartyIcon" name="PartyIcon" type="text"
+                                    class="form-control" placeholder="Paste the URL of the Party Icon" required>
                             </div>
                         </div>
                     </div>
@@ -154,13 +153,15 @@
         $('#action_label').html('Add New');
         $('#editPartyId').val(null);
         $('#PartyName').val(null);
+        $('#PartyIcon').val(null);
         $('#addPartyButton').val('add');
     }
 
-    function editParty(id, name) {
+    function editParty(id, name, icon) {
         $('#action_label').html('Edit');
         $('#editPartyId').val(id);
         $('#PartyName').val(name);
+        $('#PartyIcon').val(icon);
         $('#addPartyButton').val('edit');
     }
 

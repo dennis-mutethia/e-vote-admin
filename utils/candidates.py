@@ -77,6 +77,6 @@ class Candidates():
         ward_id = request.args.get('ward') or None
         polling_stations = self.db.get_polling_stations(ward_id, constituency_id, county_id)  
         station_id = request.args.get('station') or None
-        voters = self.db.get_voters(station_id, ward_id, constituency_id, county_id)
-        return render_template('candidates.html', counties=counties, county_id=county_id, constituencies=constituencies, constituency_id=constituency_id, wards=wards, ward_id=ward_id, polling_stations=polling_stations, station_id=station_id, voters=voters, success=success, error=error, 
+        candidates = self.db.get_voters(station_id, ward_id, constituency_id, county_id)
+        return render_template('candidates.html', counties=counties, county_id=county_id, constituencies=constituencies, constituency_id=constituency_id, wards=wards, ward_id=ward_id, polling_stations=polling_stations, station_id=station_id, candidates=candidates, success=success, error=error, 
                                menu='elections', page='candidates')

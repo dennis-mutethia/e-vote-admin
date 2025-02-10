@@ -1,6 +1,5 @@
-import os
+
 from flask import request, render_template
-from werkzeug.utils import secure_filename
 
 class Parties():
     def __init__(self, db):
@@ -9,10 +8,8 @@ class Parties():
     def add(self):      
         try:
             name = request.form['PartyName']
-            icon = request.files['PartyIcon']
-            filename = secure_filename(icon.filename)
-            icon.save(os.path.join('static/assets/img/parties/', filename))
-            if self.db.insert_party(name.upper(), filename):
+            icon = request.form['PartyIcon']
+            if self.db.insert_party(name.upper(), icon):
                 success=f'{name} Saved Successful.'
                 error=None
             else:
@@ -26,10 +23,8 @@ class Parties():
         try:
             id = request.form['editPartyId']
             name = request.form['PartyName']
-            icon = request.files['PartyIcon']
-            filename = secure_filename(icon.filename)
-            icon.save(os.path.join('static/assets/img/parties/', filename))
-            if self.db.update_party(id, name.upper(), filename):
+            icon = request.form['PartyIcon']
+            if self.db.update_party(id, name.upper(), icon):
                 success=f'{name} Updated Successful.'
                 error=None
             else:
