@@ -1,5 +1,5 @@
 {
-    "name": "E-VOTE-ADMIN",
+    "name": "E-VOTER-ADMIN",
     "dockerFile": "../Dockerfile",
     "customizations": {
         "vscode": {

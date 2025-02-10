@@ -45,13 +45,13 @@
                         <p>Dashboard</p>
                     </a>
                 </li>                  
-                <li class="nav-item">
-                    <a data-toggle="collapse" href="#base">
+                <li class="nav-item {{ 'active' if menu=='electoral_units' }}">
+                    <a data-toggle="collapse" href="#electoral_units">
                         <i class="fas fa-coins"></i>
                         <p>Electoral Units</p>
                         <span class="caret"></span>
                     </a>
-                    <div class="{{ 'collapse' if menu!='electoral_units' }}" id="base">
+                    <div class="{{ 'collapse' if menu!='electoral_units' }}" id="electoral_units">
                         <ul class="nav nav-collapse">
                             <li class="{{ 'active' if page=='counties' }}">
                                 <a href="{{ url_for('counties') }}">
@@ -59,23 +59,57 @@
                                 </a>
                             </li>
                             <li class="{{ 'active' if page=='constituencies' }}">
-                                <a href="{{ url_for('dashboard') }}">
+                                <a href="{{ url_for('constituencies') }}">
                                     <span class="sub-item">Constituencies</span>
                                 </a>
                             </li>
                             <li class="{{ 'active' if page=='wards' }}">
-                                <a href="{{ url_for('dashboard') }}">
+                                <a href="{{ url_for('wards') }}">
                                     <span class="sub-item">Wards</span>
                                 </a>
                             </li>
                             <li class="{{ 'active' if page=='polling_stations' }}">
-                                <a href="{{ url_for('dashboard') }}">
+                                <a href="{{ url_for('polling_stations') }}">
                                     <span class="sub-item">Polling Stations</span>
                                 </a>
                             </li>
                         </ul>
                     </div>
-                </li>            
+                </li>                  
+                <li class="nav-item {{ 'active' if menu=='voters_register' }}">
+                    <a href="{{ url_for('voters_register') }}">
+                        <i class="fas fa-users"></i>
+                        <p>Voters Register</p>
+                    </a>
+                </li>  
+                                
+                <li class="nav-item {{ 'active' if menu=='elections' }}">
+                    <a data-toggle="collapse" href="#elections">
+                        <i class="fas fa-window-restore"></i>
+                        <p>Elections</p>
+                        <span class="caret"></span>
+                    </a>
+                    <div class="{{ 'collapse' if menu!='elections' }}" id="elections">
+                        <ul class="nav nav-collapse">
+                            <li class="{{ 'active' if page=='election_types' }}">
+                                <a href="{{ url_for('election_types') }}">
+                                    <span class="sub-item">Election Types</span>
+                                </a>
+                            </li>
+                            <li class="{{ 'active' if page=='parties' }}">
+                                <a href="{{ url_for('parties') }}">
+                                    <span class="sub-item">Political Parties</span>
+                                </a>
+                            </li>
+                            <li class="{{ 'active' if page=='candidates' }}">
+                                <a href="{{ url_for('candidates') }}">
+                                    <span class="sub-item">Candidates</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>     
+                     
                 <li class="nav-item {{ 'active' if page=='hotspots' }}">
                     <a href="#hotspots">
                         <i class="fas fa-desktop"></i>
@@ -93,13 +127,7 @@
                         <i class="far fa-chart-bar"></i>
                         <p>Subscribers</p>
                     </a>
-                </li>                   
-                <li class="nav-item {{ 'active' if page=='users' }}">
-                    <a href="#users">
-                        <i class="fas fa-users"></i>
-                        <p>System Users</p>
-                    </a>
-                </li>              
+                </li>           
                 <li class="nav-item {{ 'active' if page=='settings' }}">
                     <a href="#base">
                         <i class="fas fa-cogs"></i>

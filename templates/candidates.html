@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-inner">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex align-items-center">
+                    <h4 class="card-title">Candidates</h4>
+                    
+                    <form id="filterForm" class="row card-title ml-auto" method="GET">
+                        <div class="col-3 text-center">
+                            <div class="form-group form-group-default">
+                                <label>Filter by County</label>                                
+                                <select class="form-control input-sm" name="county" required onchange="document.getElementById('filterForm').submit()">
+                                    <option value="">Select County</option>
+                                    {% for county in counties %}
+                                    <option value="{{ county.id }}" {{ 'selected' if county_id==county.id }} >{{ county.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>                        
+                        <div class="col-3 text-center">
+                            <div class="form-group form-group-default">
+                                <label>Filter by Constituency</label>                                
+                                <select class="form-control input-sm" name="constituency" required onchange="document.getElementById('filterForm').submit()">
+                                    <option value="">Select Constituency</option>
+                                    {% for constituency in constituencies %}
+                                    <option value="{{ constituency.id }}" {{ 'selected' if constituency_id==constituency.id }} >{{ constituency.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>                    
+                        <div class="col-3 text-center">
+                            <div class="form-group form-group-default">
+                                <label>Filter by Ward</label>                                
+                                <select class="form-control input-sm" name="ward" required onchange="document.getElementById('filterForm').submit()">
+                                    <option value="">Select Ward</option>
+                                    {% for ward in wards %}
+                                    <option value="{{ ward.id }}" {{ 'selected' if ward_id==ward.id }}>{{ ward.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>                  
+                        <div class="col-3 text-center">
+                            <div class="form-group form-group-default">
+                                <label>Filter by Polling Station</label>                                
+                                <select class="form-control input-sm" name="station" required onchange="document.getElementById('filterForm').submit()">
+                                    <option value="">Select Polling Station</option>
+                                    {% for polling_station in polling_stations %}
+                                    <option value="{{ polling_station.id }}" {{ 'selected' if station_id==polling_station.id }}>{{ polling_station.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+
+                    <button class="btn btn-success btn-round ml-auto" data-toggle="modal" data-target="#addCandidateModal"
+                        onclick="addCandidate()">
+                        <i class="fa fa-plus"></i>
+                        Add Candidate
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="add-row" class="display table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>CANDIDATE ID NO.</th>
+                                <th>CANDIDATE NAME</th>
+                                <th>CANDIDATE PHONE</th>
+                                <th>COUNTY</th>
+                                <th>CONSTITUENCY</th>
+                                <th>WARD</th>
+                                <th>POLLING STATION</th>
+                                <th>ELECTION VIED</th>
+                                <th class="text-center" style="width: 10%">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for candidate in candidates %}
+                            <tr>
+                                <td>{{ candidate.id_number }}</td>
+                                <td>{{ candidate.name }}</td>
+                                <td>{{ candidate.phone }}</td>
+                                <td>{{ candidate.polling_station_name }}</td>
+                                <td>
+                                    <div class="form-button-action">
+                                        <button type="button" title="Edit this Candidate" data-toggle="modal"
+                                            data-target="#addCandidateModal"
+                                            onclick="editCandidate('{{ candidate.id }}', '{{ candidate.id_number }}', '{{ candidate.first_name }}', '{{ candidate.last_name }}', '{{ candidate.other_name }}', '{{ candidate.phone }}', '{{ candidate.polling_station_name }}')"
+                                            class="btn btn-link btn-primary btn-lg"
+                                            data-original-title="Edit this Candidate">
+                                            <i class="fa fa-edit"></i>
+                                        </button>
+                                        <button type="button" title="Remove this Candidate" data-toggle="modal"
+                                            data-target="#removeCandidateModal"
+                                            onclick="removeCandidate('{{ candidate.id }}', '{{ candidate.name }}')"
+                                            class="btn btn-link btn-danger" data-original-title="Remove this Candidate">
+                                            <i class="fa fa-times"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<div class="modal fade" id="addCandidateModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="POST">
+                <input id="editCandidateId" name="editCandidateId" type="hidden">
+                <div class="modal-header no-bd">
+                    <h5 class="modal-title">
+                        <span id="action_label" class="fw-mediumbold">
+                            Add New</span>
+                        <span class="fw-light">
+                            Candidate
+                        </span>
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="form-group form-group-default">
+                                <label>Candidate Id Number</label>
+                                <input id="CandidateIdNumber" name="CandidateIdNumber" type="text"
+                                    class="form-control" placeholder="Type Candidate Id Number Here" required>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="form-group form-group-default">
+                                <label>Candidate First Name</label>
+                                <input id="CandidateFirstName" name="CandidateFirstName" type="text"
+                                    class="form-control" placeholder="Type Candidate First Name Here" required>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="form-group form-group-default">
+                                <label>Candidate Last Name</label>
+                                <input id="CandidateLastName" name="CandidateLastName" type="text"
+                                    class="form-control" placeholder="Type Candidate Last Name Here" required>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="form-group form-group-default">
+                                <label>Candidate Other Name</label>
+                                <input id="CandidateOtherName" name="CandidateOtherName" type="text"
+                                    class="form-control" placeholder="Type Candidate Other Name Here">
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="form-group form-group-default">
+                                <label>Candidate Phone Number</label>
+                                <input id="CandidatePhone" name="CandidatePhone" type="text"
+                                    class="form-control" placeholder="Type Candidate Phone Number Here" required>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="form-group form-group-default">
+                                <label>Select Polling Station</label>                                
+                                <select class="form-control input-sm" name="CandidatePollingStationId" id="CandidatePollingStationId" required>
+                                    {% for polling_station in polling_stations %}
+                                    <option value="{{ polling_station.id }}" {{ 'selected' if station_id==polling_station.id }}>{{ polling_station.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer no-bd">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                    <button type="submit" id="addCandidateButton" name="action" value="add"
+                        class="btn btn-success">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="removeCandidateModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="POST">
+                <input id="removeCandidateId" name="removeCandidateId" type="hidden">
+                <div class="modal-header no-bd">
+                    <h5 class="modal-title">
+                        <span class="fw-mediumbold">
+                            Are you sure you want to Remove </span>
+                        <span class="fw-light" id="removeCandidateName"></span>
+                        Candidate
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Click Confirm Remove to Completely Remove this Candidate.</p>
+                    <small class="text-danger">THIS ACTION IS NOT REVERSIBLE</small>
+                </div>
+                <div class="modal-footer no-bd">
+                    <button type="button" class="btn btn-warning" data-dismiss="modal">Close</button>
+                    <button type="submit" id="removeCandidateButton" name="action" value="remove"
+                        class="btn btn-danger">Confirm Remove</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        // Add Row
+        $('#add-row').DataTable({
+            "pageLength": 5,
+        });
+    });
+
+    function addCandidate() {
+        $('#action_label').html('Add New');
+        $('#editCandidateId').val(null);
+        $('#CandidateIdNumber').val(null);
+        $('#CandidateFirstName').val(null);
+        $('#CandidateLastName').val(null);
+        $('#CandidateOtherName').val(null);
+        $('#CandidatePhone').val(null);
+        $('#addCandidateButton').val('add');
+    }
+
+    function editCandidate(id, id_number, first_name, last_name, other_name, phone, polling_station_name) {
+        $('#action_label').html('Edit');
+        $('#editCandidateId').val(id);
+        $('#CandidateIdNumber').val(id_number);
+        $('#CandidateFirstName').val(first_name);
+        $('#CandidateLastName').val(last_name);
+        $('#CandidateOtherName').val(other_name);
+        $('#CandidatePhone').val(phone);
+        $('#CandidatePollingStationId option').filter(function () {
+            return $(this).text() === polling_station_name;
+        }).prop('selected', true);
+        $('#addCandidateButton').val('edit');
+    }
+
+    function removeCandidate(id, name) {
+        $('#removeCandidateId').val(id);
+        $('#removeCandidateName').html(name);
+    }
+</script>
+
+{% endblock %}

@@ -14,5 +14,7 @@ class Dashboard():
             if request.form['action'] == 'vote':
                 #success, error = self.vote()
                 pass
-                
-        return render_template('dashboard.html', success=success, error=error)
+        
+        registered_voters = self.db.get_registered_voters(polling_station_id=None, ward_id=None, constituency_id=None, county_id=None)    
+        return render_template('dashboard.html', registered_voters=registered_voters,
+                               success=success, error=error, menu='dashboard')

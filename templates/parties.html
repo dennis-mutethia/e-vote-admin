@@ -6,11 +6,11 @@
         <div class="card">
             <div class="card-header">
                 <div class="d-flex align-items-center">
-                    <h4 class="card-title">Counties</h4>
-                    <button class="btn btn-success btn-round ml-auto" data-toggle="modal" data-target="#addCountyModal"
-                        onclick="addCounty()">
+                    <h4 class="card-title">Political Parties</h4>
+                    <button class="btn btn-success btn-round ml-auto" data-toggle="modal" data-target="#addPartyModal"
+                        onclick="addParty()">
                         <i class="fa fa-plus"></i>
-                        Add County
+                        Add Party
                     </button>
                 </div>
             </div>
@@ -19,37 +19,39 @@
                     <table id="add-row" class="display table table-striped table-hover">
                         <thead>
                             <tr>
-                                <th class="text-center">CODE</th>
-                                <th>COUNTY NAME</th>
-                                <th class="text-center">CONSTITUENCIES</th>
+                                <th>Party Name</th>
+                                <th class="text-center">Icon</th>
+                                <th class="text-center">Candidates</th>
                                 <th class="text-center" style="width: 10%">Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for county in counties %}
+                            {% for party in parties %}
                             <tr>
-                                <td class="text-center">{{ '%03d' % county.code }}</td>
-                                <td>{{ county.name }}</td>
+                                <td>{{ party.name }}</td>
+                                <td class="text-center avatar-sm">
+                                    <img src="{{ party.icon }}" alt="party icon" class="avatar-img rounded-circle">
+                                </td>
                                 <td class="text-center">
-                                    {% if county.ttl_constituencies %}
-                                        <a href="{{ url_for('constituencies', county=county.id) }}">{{ county.ttl_constituencies }}</a>
+                                    {% if party.ttl_candidates %}
+                                        <a href="{{ url_for('candidates', party=party.id) }}">{{ party.ttl_candidates }}</a>
                                     {% else %}
                                         0
                                     {% endif %}
                                 </td>
                                 <td>
                                     <div class="form-button-action">
-                                        <button type="button" title="Edit this County" data-toggle="modal"
-                                            data-target="#addCountyModal"
-                                            onclick="editCounty('{{ county.id }}', {{ county.code }}, '{{ county.name }}')"
+                                        <button type="button" title="Edit this Party" data-toggle="modal"
+                                            data-target="#addPartyModal"
+                                            onclick="editParty('{{ party.id }}', '{{ party.name }}', '{{ party.icon }}')"
                                             class="btn btn-link btn-primary btn-lg"
-                                            data-original-title="Edit this County">
+                                            data-original-title="Edit this Party">
                                             <i class="fa fa-edit"></i>
                                         </button>
-                                        <button type="button" title="Remove this County" data-toggle="modal"
-                                            data-target="#removeCountyModal"
-                                            onclick="removeCounty('{{ county.id }}', '{{ county.name }}')"
-                                            class="btn btn-link btn-danger" data-original-title="Remove this County">
+                                        <button type="button" title="Remove this Party" data-toggle="modal"
+                                            data-target="#removePartyModal"
+                                            onclick="removeParty('{{ party.id }}', '{{ party.name }}')"
+                                            class="btn btn-link btn-danger" data-original-title="Remove this Party">
                                             <i class="fa fa-times"></i>
                                         </button>
                                     </div>
@@ -65,17 +67,17 @@
 </div>
 
 <!-- Modals -->
-<div class="modal fade" id="addCountyModal" tabindex="-1" role="dialog" aria-hidden="true">
+<div class="modal fade" id="addPartyModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <form method="POST">
-                <input id="editCountyId" name="editCountyId" type="hidden">
+                <input id="editPartyId" name="editPartyId" type="hidden">
                 <div class="modal-header no-bd">
                     <h5 class="modal-title">
                         <span id="action_label" class="fw-mediumbold">
                             Add New</span>
                         <span class="fw-light">
-                            County
+                            Party
                         </span>
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -86,52 +88,52 @@
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="form-group form-group-default">
-                                <label>County Code</label>
-                                <input id="CountyCode" name="CountyCode" type="number"
-                                    class="form-control" placeholder="County Code" required>
+                                <label>Party Name</label>
+                                <input id="PartyName" name="PartyName" type="text"
+                                    class="form-control" placeholder="Party Name" required>
                             </div>
                         </div>
                         <div class="col-sm-12">
                             <div class="form-group form-group-default">
-                                <label>County Name</label>
-                                <input id="CountyName" name="CountyName" type="text"
-                                    class="form-control" placeholder="County Name" required>
+                                <label>Party Icon</label>
+                                <input id="PartyIcon" name="PartyIcon" type="text"
+                                    class="form-control" placeholder="Paste the URL of the Party Icon" required>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer no-bd">
                     <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-                    <button type="submit" id="addCountyButton" name="action" value="add"
+                    <button type="submit" id="addPartyButton" name="action" value="add"
                         class="btn btn-success">Save</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-<div class="modal fade" id="removeCountyModal" tabindex="-1" role="dialog" aria-hidden="true">
+<div class="modal fade" id="removePartyModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <form method="POST">
-                <input id="removeCountyId" name="removeCountyId" type="hidden">
+                <input id="removePartyId" name="removePartyId" type="hidden">
                 <div class="modal-header no-bd">
                     <h5 class="modal-title">
                         <span class="fw-mediumbold">
                             Are you sure you want to Remove </span>
-                        <span class="fw-light" id="removeCountyName"></span>
-                        County
+                        <span class="fw-light" id="removePartyName"></span>
+                        Party
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    <p>Click Confirm Remove to Completely Remove this County.</p>
+                    <p>Click Confirm Remove to Completely Remove this Party.</p>
                     <small class="text-danger">THIS ACTION IS NOT REVERSIBLE</small>
                 </div>
                 <div class="modal-footer no-bd">
                     <button type="button" class="btn btn-warning" data-dismiss="modal">Close</button>
-                    <button type="submit" id="removeCountyButton" name="action" value="remove"
+                    <button type="submit" id="removePartyButton" name="action" value="remove"
                         class="btn btn-danger">Confirm Remove</button>
                 </div>
             </form>
@@ -147,25 +149,25 @@
         });
     });
 
-    function addCounty() {
+    function addParty() {
         $('#action_label').html('Add New');
-        $('#editCountyId').val(null);
-        $('#CountyCode').val(null);
-        $('#CountyName').val(null);
-        $('#addCountyButton').val('add');
+        $('#editPartyId').val(null);
+        $('#PartyName').val(null);
+        $('#PartyIcon').val(null);
+        $('#addPartyButton').val('add');
     }
 
-    function editCounty(id, code, name) {
+    function editParty(id, name, icon) {
         $('#action_label').html('Edit');
-        $('#editCountyId').val(id);
-        $('#CountyCode').val(code);
-        $('#CountyName').val(name);
-        $('#addCountyButton').val('edit');
+        $('#editPartyId').val(id);
+        $('#PartyName').val(name);
+        $('#PartyIcon').val(icon);
+        $('#addPartyButton').val('edit');
     }
 
-    function removeCounty(id, name) {
-        $('#removeCountyId').val(id);
-        $('#removeCountyName').html(name);
+    function removeParty(id, name) {
+        $('#removePartyId').val(id);
+        $('#removePartyName').html(name);
     }
 </script>
 
