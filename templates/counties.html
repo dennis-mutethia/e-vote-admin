@@ -30,7 +30,13 @@
                             <tr>
                                 <td class="text-center">{{ '%03d' % county.code }}</td>
                                 <td>{{ county.name }}</td>
-                                <td class="text-center">{{ county.ttl_constituencies }}</td>
+                                <td class="text-center">
+                                    {% if county.ttl_constituencies %}
+                                        <a href="{{ url_for('constituencies', county=county.id) }}">{{ county.ttl_constituencies }}</a>
+                                    {% else %}
+                                        0
+                                    {% endif %}
+                                </td>
                                 <td>
                                     <div class="form-button-action">
                                         <button type="button" title="Edit this County" data-toggle="modal"

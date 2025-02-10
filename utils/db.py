@@ -2,7 +2,7 @@ from flask_login import current_user
 import os, psycopg2
 import uuid
 
-from utils.entities import Candidate, Constituency, County, Election, MyVote, Voter
+from utils.entities import Candidate, Constituency, County, Election, MyVote, PollingStation, Voter, Ward
 
 class Db():
     def __init__(self):
@@ -61,15 +61,14 @@ class Db():
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                #query = f"DROP TABLE {self.schema}.counties"
                 query = f"""
-                WITH wards AS(
+                WITH constituencies AS(
                     SELECT county_id, COUNT(*) AS ttl_constituencies FROM {self.schema}.constituencies 
                     GROUP BY county_id
                 )
                 SELECT id, code, name, ttl_constituencies
                 FROM {self.schema}.counties
-                LEFT JOIN wards ON counties.id = wards.county_id
+                LEFT JOIN constituencies ON counties.id = constituencies.county_id
                 ORDER BY code
                 """
                 cursor.execute(query)
@@ -81,25 +80,167 @@ class Db():
                 return counties
         except Exception as e:
             print(e)
-            return None      
+            return []            
+    
+    def insert_constituency(self, code, county_id, name):
+        id = str(uuid.uuid5(uuid.NAMESPACE_DNS, (f'{code}-{county_id}-{name}')))
+        self.ensure_connection()
+        try:
+            with self.conn.cursor() as cursor:
+                query = f"INSERT INTO {self.schema}.constituencies (id, code, county_id, name) VALUES (%s, %s, %s, %s)"
+                cursor.execute(query, (id, code, county_id, name))
+                self.conn.commit()
+                return True
+        except Exception as e:
+            print(e)
+            return False
+    
+    def update_constituency(self, id, code, county_id, name):
+        self.ensure_connection()
+        try:
+            with self.conn.cursor() as cursor:
+                query = f"UPDATE {self.schema}.constituencies SET code = %s, county_id=%s, name = %s WHERE id = %s"
+                cursor.execute(query, (code, county_id, name, id))
+                self.conn.commit()
+                return True
+        except Exception as e:
+            print(e)
+            return False
       
     def get_constituencies(self, county_id=None):
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"SELECT id, name FROM {self.schema}.constituencies"
+                query = f"""
+                WITH wards AS(
+                    SELECT constituency_id, COUNT(*) AS ttl_wards FROM {self.schema}.wards 
+                    GROUP BY constituency_id
+                )
+                SELECT constituencies.id, constituencies.code, constituencies.name, county_id, counties.name, ttl_wards
+                FROM {self.schema}.constituencies
+                JOIN {self.schema}.counties ON county_id = counties.id
+                LEFT JOIN wards ON constituencies.id = wards.constituency_id                
+                """
+                params = []
                 if county_id is not None:
                     query = f"{query} WHERE county_id = %s"
-                cursor.execute(query, (county_id,))
+                    params.append(county_id)
+                query = f"{query} ORDER BY code"
+                cursor.execute(query, tuple(params))
                 data = cursor.fetchall()
                 constituencies = []
                 for datum in data:
-                    constituencies.append(Constituency(datum[0], county_id, datum[1]))
-                
+                    constituencies.append(Constituency(datum[0], datum[1], datum[2], datum[3], datum[4], datum[5]))
+                                    
                 return constituencies
         except Exception as e:
             print(e)
-            return None
+            return []
+       
+    def insert_ward(self, code, constituency_id, name):
+        id = str(uuid.uuid5(uuid.NAMESPACE_DNS, (f'{code}-{constituency_id}-{name}')))
+        self.ensure_connection()
+        try:
+            with self.conn.cursor() as cursor:
+                query = f"INSERT INTO {self.schema}.wards (id, code, constituency_id, name) VALUES (%s, %s, %s, %s)"
+                cursor.execute(query, (id, code, constituency_id, name))
+                self.conn.commit()
+                return True
+        except Exception as e:
+            print(e)
+            return False
+    
+    def update_ward(self, id, code, constituency_id, name):
+        self.ensure_connection()
+        try:
+            with self.conn.cursor() as cursor:
+                query = f"UPDATE {self.schema}.wards SET code = %s, constituency_id=%s, name = %s WHERE id = %s"
+                cursor.execute(query, (code, constituency_id, name, id))
+                self.conn.commit()
+                return True
+        except Exception as e:
+            print(e)
+            return False
+      
+    def get_wards(self, constituency_id=None):
+        self.ensure_connection()
+        try:
+            with self.conn.cursor() as cursor:
+                query = f"""
+                WITH stations AS(
+                    SELECT ward_id, COUNT(*) AS ttl_stations FROM {self.schema}.polling_stations 
+                    GROUP BY ward_id
+                )
+                SELECT wards.id, wards.code, wards.name, constituency_id, constituencies.name, ttl_stations
+                FROM {self.schema}.wards
+                JOIN {self.schema}.constituencies ON constituency_id = constituencies.id
+                LEFT JOIN stations ON wards.id = stations.ward_id                
+                """
+                params = []
+                if constituency_id is not None:
+                    query = f"{query} WHERE constituency_id = %s"
+                    params.append(constituency_id)
+                query = f"{query} ORDER BY code"
+                cursor.execute(query, tuple(params))
+                data = cursor.fetchall()
+                wards = []
+                for datum in data:
+                    wards.append(Ward(datum[0], datum[1], datum[2], datum[3], datum[4], datum[5]))
+                                    
+                return wards
+        except Exception as e:
+            print(e)
+            return []
+     
+    def insert_polling_station(self, code, ward_id, name):
+        id = str(uuid.uuid5(uuid.NAMESPACE_DNS, (f'{code}-{ward_id}-{name}')))
+        self.ensure_connection()
+        try:
+            with self.conn.cursor() as cursor:
+                query = f"INSERT INTO {self.schema}.polling_stations (id, code, ward_id, name) VALUES (%s, %s, %s, %s)"
+                cursor.execute(query, (id, code, ward_id, name))
+                self.conn.commit()
+                return True
+        except Exception as e:
+            print(e)
+            return False
+    
+    def update_polling_station(self, id, code, ward_id, name):
+        self.ensure_connection()
+        try:
+            with self.conn.cursor() as cursor:
+                query = f"UPDATE {self.schema}.polling_stations SET code = %s, ward_id=%s, name = %s WHERE id = %s"
+                cursor.execute(query, (code, ward_id, name, id))
+                self.conn.commit()
+                return True
+        except Exception as e:
+            print(e)
+            return False
+      
+    def get_polling_stations(self, ward_id=None):
+        self.ensure_connection()
+        try:
+            with self.conn.cursor() as cursor:
+                query = f"""
+                SELECT polling_stations.id, polling_stations.code, polling_stations.name, ward_id, wards.name
+                FROM {self.schema}.polling_stations
+                JOIN {self.schema}.wards ON ward_id = wards.id        
+                """
+                params = []
+                if ward_id is not None:
+                    query = f"{query} WHERE ward_id = %s"
+                    params.append(ward_id)
+                query = f"{query} ORDER BY code"
+                cursor.execute(query, tuple(params))
+                data = cursor.fetchall()
+                polling_stations = []
+                for datum in data:
+                    polling_stations.append(PollingStation(datum[0], datum[1], datum[2], datum[3], datum[4]))
+                                    
+                return polling_stations
+        except Exception as e:
+            print(e)
+            return []
     
     def get_voter(self, id=None, fingerprint_hash=None):
         self.ensure_connection()

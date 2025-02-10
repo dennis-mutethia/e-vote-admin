@@ -15,4 +15,5 @@ class Dashboard():
                 #success, error = self.vote()
                 pass
                 
-        return render_template('dashboard.html', success=success, error=error)
+        return render_template('dashboard.html', success=success, error=error,
+                               menu='dashboard')

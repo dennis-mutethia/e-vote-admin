@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-inner">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex align-items-center">
+                    <h4 class="card-title">Polling Stations</h4>
+                    <div class="col-sm-2"></div>
+                    <div class="col-sm-4 text-center">
+                        <form id="filterForm" method="GET" class="form-group form-group-default">
+                            <label>Filter by Ward</label>                                
+                            <select class="form-control input-sm" name="ward" required onchange="document.getElementById('filterForm').submit()">
+                                <option value="">ALL WARDS</option>
+                                {% for ward in wards %}
+                                <option value="{{ ward.id }}" {{ 'selected' if ward_id==ward.id }}>{{ ward.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </form>
+                    </div>
+
+                    <button class="btn btn-success btn-round ml-auto" data-toggle="modal" data-target="#addPollingStationModal"
+                        onclick="addPollingStation()">
+                        <i class="fa fa-plus"></i>
+                        Add Polling Station
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="add-row" class="display table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th class="text-center">CODE</th>
+                                <th>POLLING STATION NAME</th>
+                                <th>WARD NAME</th>
+                                <th class="text-center" style="width: 10%">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for polling_station in polling_stations %}
+                            <tr>
+                                <td class="text-center">{{ '%03d' % polling_station.code }}</td>
+                                <td>{{ polling_station.name }}</td>
+                                <td>{{ polling_station.ward_name }}</td>
+                                <td>
+                                    <div class="form-button-action">
+                                        <button type="button" title="Edit this PollingStation" data-toggle="modal"
+                                            data-target="#addPollingStationModal"
+                                            onclick="editPollingStation('{{ polling_station.id }}', {{ polling_station.code }}, '{{ polling_station.name }}', '{{ polling_station.ward_name }}')"
+                                            class="btn btn-link btn-primary btn-lg"
+                                            data-original-title="Edit this PollingStation">
+                                            <i class="fa fa-edit"></i>
+                                        </button>
+                                        <button type="button" title="Remove this PollingStation" data-toggle="modal"
+                                            data-target="#removePollingStationModal"
+                                            onclick="removePollingStation('{{ polling_station.id }}', '{{ polling_station.name }}')"
+                                            class="btn btn-link btn-danger" data-original-title="Remove this PollingStation">
+                                            <i class="fa fa-times"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<div class="modal fade" id="addPollingStationModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="POST">
+                <input id="editPollingStationId" name="editPollingStationId" type="hidden">
+                <div class="modal-header no-bd">
+                    <h5 class="modal-title">
+                        <span id="action_label" class="fw-mediumbold">
+                            Add New</span>
+                        <span class="fw-light">
+                            Polling Station
+                        </span>
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="form-group form-group-default">
+                                <label>Polling Station Code</label>
+                                <input id="PollingStationCode" name="PollingStationCode" type="number"
+                                    class="form-control" placeholder="Type PollingStation Code Here" required>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="form-group form-group-default">
+                                <label>Polling Station Name</label>
+                                <input id="PollingStationName" name="PollingStationName" type="text"
+                                    class="form-control" placeholder="Type PollingStation Name Here" required>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="form-group form-group-default">
+                                <label>Select Ward</label>                                
+                                <select class="form-control input-sm" name="WardId" id="WardId" required>
+                                    {% for ward in wards %}
+                                    <option value="{{ ward.id }}" {{ 'selected' if ward_id==ward.id }}>{{ ward.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer no-bd">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                    <button type="submit" id="addPollingStationButton" name="action" value="add"
+                        class="btn btn-success">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="removePollingStationModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="POST">
+                <input id="removePollingStationId" name="removePollingStationId" type="hidden">
+                <div class="modal-header no-bd">
+                    <h5 class="modal-title">
+                        <span class="fw-mediumbold">
+                            Are you sure you want to Remove </span>
+                        <span class="fw-light" id="removePollingStationName"></span>
+                        PollingStation
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Click Confirm Remove to Completely Remove this PollingStation.</p>
+                    <small class="text-danger">THIS ACTION IS NOT REVERSIBLE</small>
+                </div>
+                <div class="modal-footer no-bd">
+                    <button type="button" class="btn btn-warning" data-dismiss="modal">Close</button>
+                    <button type="submit" id="removePollingStationButton" name="action" value="remove"
+                        class="btn btn-danger">Confirm Remove</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        // Add Row
+        $('#add-row').DataTable({
+            "pageLength": 5,
+        });
+    });
+
+    function addPollingStation() {
+        $('#action_label').html('Add New');
+        $('#editPollingStationId').val(null);
+        $('#PollingStationCode').val(null);
+        $('#PollingStationName').val(null);
+        $('#addPollingStationButton').val('add');
+    }
+
+    function editPollingStation(id, code, name, ward_name) {
+        $('#action_label').html('Edit');
+        $('#editPollingStationId').val(id);
+        $('#PollingStationCode').val(code);
+        $('#PollingStationName').val(name);
+        $('#WardId option').filter(function () {
+            return $(this).text() === ward_name;
+        }).prop('selected', true);
+        $('#addPollingStationButton').val('edit');
+    }
+
+    function removePollingStation(id, name) {
+        $('#removePollingStationId').val(id);
+        $('#removePollingStationName').html(name);
+    }
+</script>
+
+{% endblock %}

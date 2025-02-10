@@ -32,23 +32,30 @@ class County():
         self.ttl_constituencies = ttl_constituencies
 
 class Constituency():
-    def __init__(self, id, county_id, name, ttl_wards):
+    def __init__(self, id, code, name, county_id, county_name, ttl_wards):
         self.id = id
-        self.county_id = county_id
+        self.code = int(code)
         self.name = name
+        self.county_id = county_id
+        self.county_name = county_name
+        self.ttl_wards = ttl_wards
 
 class Ward():
-    def __init__(self, id, constituency_id, name, ttl_polling_stations):
+    def __init__(self, id, code, name, constituency_id, constituency_name, ttl_stations):
         self.id = id
-        self.constituency_id = constituency_id
+        self.code = int(code)
         self.name = name
-        self.ttl_polling_stations = ttl_polling_stations
+        self.constituency_id = constituency_id
+        self.constituency_name = constituency_name
+        self.ttl_stations = ttl_stations
 
 class PollingStation():
-    def __init__(self, id, ward_id, name):
+    def __init__(self, id, code, name, ward_id, ward_name):
         self.id = id
-        self.ward_id = ward_id
+        self.code = int(code)
         self.name = name
+        self.ward_id = ward_id
+        self.ward_name = ward_name
         
 class Election():
     def __init__(self, id, name):
