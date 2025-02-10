@@ -73,7 +73,7 @@ class Party():
         self.ttl_candidates = ttl_candidates
 
 class Voter():
-    def __init__(self, id, id_number, first_name, last_name, other_name, phone, polling_station_id, polling_station_name):
+    def __init__(self, id, id_number, first_name, last_name, other_name, phone, polling_station_id, polling_station_name, ward, constituency, county):
         self.id = id
         self.id_number = id_number
         self.first_name = first_name
@@ -83,18 +83,28 @@ class Voter():
         self.phone = phone
         self.polling_station_id = polling_station_id
         self.polling_station_name = polling_station_name
-        
+        self.ward = ward 
+        self.constituency = constituency 
+        self.county = county
+ 
 class Candidate():
-    def __init__(self, id, icon, running_mate_icon, unit, unit_id, name, running_mate_name, party_name, party_icon):
+    def __init__(self, id, id_number, name, phone, icon, polling_station_name, ward_name, constituency_name, county_name, election_id, election_name, party_id, party_name, party_icon, running_mate_name, running_mate_icon):
         self.id = id
-        self.icon = icon
-        self.running_mate_icon = running_mate_icon
-        self.unit = unit
-        self.unit_id = unit_id
+        self.id_number = id_number
         self.name = name
-        self.running_mate_name = running_mate_name
+        self.phone = phone
+        self.icon = icon
+        self.polling_station_name = polling_station_name
+        self.ward_name = ward_name
+        self.constituency_name = constituency_name
+        self.county_name = county_name
+        self.election_id = election_id
+        self.election_name = election_name
+        self.party_id = party_id
         self.party_name = party_name
         self.party_icon = party_icon
+        self.running_mate_name = running_mate_name
+        self.running_mate_icon = running_mate_icon
 
 class MyVote():
     def __init__(self, election_code, election_name, candidate_name, icon):

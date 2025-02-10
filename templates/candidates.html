@@ -55,8 +55,7 @@
                         </div>
                     </form>
 
-                    <button class="btn btn-success btn-round ml-auto" data-toggle="modal" data-target="#addCandidateModal"
-                        onclick="addCandidate()">
+                    <button class="btn btn-success btn-round ml-auto" data-toggle="modal" data-target="#searchVoterModal">
                         <i class="fa fa-plus"></i>
                         Add Candidate
                     </button>
@@ -67,14 +66,16 @@
                     <table id="add-row" class="display table table-striped table-hover">
                         <thead>
                             <tr>
-                                <th>CANDIDATE ID NO.</th>
-                                <th>CANDIDATE NAME</th>
-                                <th>CANDIDATE PHONE</th>
+                                <th>ID NUMBER</th>
+                                <th>FULL NAME</th>
+                                <th>PHONE No.</th>
                                 <th>COUNTY</th>
                                 <th>CONSTITUENCY</th>
                                 <th>WARD</th>
                                 <th>POLLING STATION</th>
                                 <th>ELECTION VIED</th>
+                                <th>RUNNING MATE</th>
+                                <th class="text-center">ICON</th>
                                 <th class="text-center" style="width: 10%">Action</th>
                             </tr>
                         </thead>
@@ -84,12 +85,20 @@
                                 <td>{{ candidate.id_number }}</td>
                                 <td>{{ candidate.name }}</td>
                                 <td>{{ candidate.phone }}</td>
+                                <td>{{ candidate.county_name }}</td>
+                                <td>{{ candidate.constituency_name }}</td>
+                                <td>{{ candidate.ward_name }}</td>
                                 <td>{{ candidate.polling_station_name }}</td>
+                                <td>{{ candidate.election_name }}</td>                                
+                                <td>{{ candidate.running_mate_name }}</td>
+                                <td class="text-center avatar-sm">
+                                    <img src="{{ candidate.icon }}" alt="candidate icon" class="avatar-img rounded-circle">
+                                </td>
                                 <td>
                                     <div class="form-button-action">
                                         <button type="button" title="Edit this Candidate" data-toggle="modal"
                                             data-target="#addCandidateModal"
-                                            onclick="editCandidate('{{ candidate.id }}', '{{ candidate.id_number }}', '{{ candidate.first_name }}', '{{ candidate.last_name }}', '{{ candidate.other_name }}', '{{ candidate.phone }}', '{{ candidate.polling_station_name }}')"
+                                            onclick="editCandidate('{{ candidate.id }}', '{{ candidate.party_name }}', '{{ candidate.election_name }}', '{{ candidate.icon }}', '{{ candidate.other_name }}')"
                                             class="btn btn-link btn-primary btn-lg"
                                             data-original-title="Edit this Candidate">
                                             <i class="fa fa-edit"></i>
@@ -113,11 +122,45 @@
 </div>
 
 <!-- Modals -->
+<div class="modal fade" id="searchVoterModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="POST">
+                <div class="modal-header no-bd">
+                    <h5 class="modal-title">
+                        <span class="fw-mediumbold">Search Candidate in Voters Register</span>
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="form-group form-group-default">
+                                <label>Candidate Id Number</label>
+                                <input id="VoterIdNumber" name="VoterIdNumber" type="text"
+                                    class="form-control" placeholder="Type Candidate Id Number Here" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer no-bd">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                    <button type="submit" name="action" value="search"
+                        class="btn btn-success">Search Voter Register</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="addCandidateModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <form method="POST">
                 <input id="editCandidateId" name="editCandidateId" type="hidden">
+                <input id="candidateVoterId" name="candidateVoterId" type="hidden" value="{{ voter.id if voter }}">
                 <div class="modal-header no-bd">
                     <h5 class="modal-title">
                         <span id="action_label" class="fw-mediumbold">
@@ -135,46 +178,70 @@
                         <div class="col-sm-12">
                             <div class="form-group form-group-default">
                                 <label>Candidate Id Number</label>
-                                <input id="CandidateIdNumber" name="CandidateIdNumber" type="text"
-                                    class="form-control" placeholder="Type Candidate Id Number Here" required>
+                                <label>{{ voter.id_number if voter }}</label>
                             </div>
                         </div>
                         <div class="col-sm-12">
                             <div class="form-group form-group-default">
-                                <label>Candidate First Name</label>
-                                <input id="CandidateFirstName" name="CandidateFirstName" type="text"
-                                    class="form-control" placeholder="Type Candidate First Name Here" required>
-                            </div>
-                        </div>
-                        <div class="col-sm-12">
-                            <div class="form-group form-group-default">
-                                <label>Candidate Last Name</label>
-                                <input id="CandidateLastName" name="CandidateLastName" type="text"
-                                    class="form-control" placeholder="Type Candidate Last Name Here" required>
-                            </div>
-                        </div>
-                        <div class="col-sm-12">
-                            <div class="form-group form-group-default">
-                                <label>Candidate Other Name</label>
-                                <input id="CandidateOtherName" name="CandidateOtherName" type="text"
-                                    class="form-control" placeholder="Type Candidate Other Name Here">
+                                <label>Candidate Name</label>
+                                <label>{{ voter.name if voter }}</label>
                             </div>
                         </div>
                         <div class="col-sm-12">
                             <div class="form-group form-group-default">
                                 <label>Candidate Phone Number</label>
-                                <input id="CandidatePhone" name="CandidatePhone" type="text"
-                                    class="form-control" placeholder="Type Candidate Phone Number Here" required>
+                                <label>{{ voter.phone if voter }}</label>
                             </div>
                         </div>
                         <div class="col-sm-12">
                             <div class="form-group form-group-default">
-                                <label>Select Polling Station</label>                                
-                                <select class="form-control input-sm" name="CandidatePollingStationId" id="CandidatePollingStationId" required>
-                                    {% for polling_station in polling_stations %}
-                                    <option value="{{ polling_station.id }}" {{ 'selected' if station_id==polling_station.id }}>{{ polling_station.name }}</option>
+                                <label>Candidate County</label>
+                                <label>{{ voter.county if voter }}</label>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="form-group form-group-default">
+                                <label>Candidate Constituency</label>
+                                <label>{{ voter.constituency if voter }}</label>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="form-group form-group-default">
+                                <label>Candidate Ward</label>
+                                <label>{{ voter.ward if voter }}</label>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="form-group form-group-default">
+                                <label>Candidate Polling Station</label>
+                                <label>{{ voter.polling_station_name if voter }}</label>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="form-group form-group-default">
+                                <label>Select Political Party</label>                                
+                                <select class="form-control input-sm" name="CandidatePartyId" id="CandidatePartyId" required>
+                                    {% for party in parties %}
+                                    <option value="{{ party.id }}" {{ 'selected' if party_id==party.id }}>{{ party.name }}</option>
                                     {% endfor %}
                                 </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="form-group form-group-default">
+                                <label>Select Position Vieing For</label>                                
+                                <select class="form-control input-sm" name="CandidateElectionId" id="CandidateElectionId" required>
+                                    {% for election in elections %}
+                                    <option value="{{ election.id }}" {{ 'selected' if election_id==election.id }}>{{ election.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <div class="form-group form-group-default">
+                                <label>Candidate Photo</label>
+                                <input id="CandidateIcon" name="CandidateIcon" type="text"
+                                    class="form-control" placeholder="Paste URL of Candidate Picture Here" required>
                             </div>
                         </div>
                     </div>
@@ -188,6 +255,7 @@
         </div>
     </div>
 </div>
+
 <div class="modal fade" id="removeCandidateModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -220,34 +288,25 @@
 
 <script>
     $(document).ready(function () {
-        // Add Row
+        {% if voter %}
+        $('#addCandidateModal').modal('show');
+        {% endif %}
+
         $('#add-row').DataTable({
-            "pageLength": 5,
+            "pageLength": 10,
         });
     });
 
-    function addCandidate() {
-        $('#action_label').html('Add New');
-        $('#editCandidateId').val(null);
-        $('#CandidateIdNumber').val(null);
-        $('#CandidateFirstName').val(null);
-        $('#CandidateLastName').val(null);
-        $('#CandidateOtherName').val(null);
-        $('#CandidatePhone').val(null);
-        $('#addCandidateButton').val('add');
-    }
-
-    function editCandidate(id, id_number, first_name, last_name, other_name, phone, polling_station_name) {
+    function editCandidate(id, party_name, election_name, icon) {
         $('#action_label').html('Edit');
         $('#editCandidateId').val(id);
-        $('#CandidateIdNumber').val(id_number);
-        $('#CandidateFirstName').val(first_name);
-        $('#CandidateLastName').val(last_name);
-        $('#CandidateOtherName').val(other_name);
-        $('#CandidatePhone').val(phone);
-        $('#CandidatePollingStationId option').filter(function () {
-            return $(this).text() === polling_station_name;
+        $('#CandidatePartyId option').filter(function () {
+            return $(this).text() === party_name;
         }).prop('selected', true);
+        $('#CandidateElectionId option').filter(function () {
+            return $(this).text() === election_name;
+        }).prop('selected', true);
+        $('#CandidateIcon').val(icon);
         $('#addCandidateButton').val('edit');
     }
 

@@ -307,64 +307,60 @@ class Db():
                 return True
         except Exception as e:
             print(e)
-            return False
-      
-    def get_voters(self, polling_station_id=None, ward_id=None, constituency_id=None, county_id=None):
+            return False   
+        
+    def get_candidates(self):
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
                 query = f"""
-                SELECT voters.id, id_number, first_name, last_name, other_name, phone, polling_station_id, polling_stations.name
+                WITH candidates AS(
+                    SELECT party_id, COUNT(*) AS ttl_candidates FROM {self.schema}.candidates 
+                    GROUP BY party_id
+                )
+                SELECT id, name, icon, ttl_candidates
+                FROM {self.schema}.parties
+                LEFT JOIN candidates ON parties.id = candidates.party_id
+                ORDER BY parties.name
+                """
+                cursor.execute(query)
+                data = cursor.fetchall()
+                elections = []
+                for datum in data:
+                    elections.append(Party(datum[0], datum[1], datum[2], datum[3]))
+                
+                return elections
+        except Exception as e:
+            print(e)
+            return []            
+     
+    def get_voter(self, id=None, id_number=None, fingerprint_hash=None,):
+        self.ensure_connection()
+        try:
+            with self.conn.cursor() as cursor:
+                query = f"""
+                SELECT voters.id, id_number, first_name, last_name, other_name, phone, polling_station_id, polling_stations.name, wards.name, constituencies.name, counties.name
                 FROM {self.schema}.voters
                 JOIN {self.schema}.polling_stations ON polling_station_id = polling_stations.id 
                 JOIN {self.schema}.wards ON ward_id = wards.id   
                 JOIN {self.schema}.constituencies ON constituency_id = constituencies.id
-                WHERE 1=1       
+                JOIN {self.schema}.counties ON county_id = counties.id
+                WHERE 1=1
                 """
                 params = []
-                if polling_station_id is not None:
-                    query = f"{query} AND polling_station_id = %s"
-                    params.append(polling_station_id)
-                if ward_id is not None:
-                    query = f"{query} AND ward_id = %s"
-                    params.append(ward_id)
-                if constituency_id is not None:
-                    query = f"{query} AND constituency_id = %s"
-                    params.append(constituency_id)
-                if county_id is not None:
-                    query = f"{query} AND county_id = %s"
-                    params.append(county_id)
-                query = f"{query} ORDER BY id_number"
-                cursor.execute(query, tuple(params))
-                data = cursor.fetchall()
-                voters = []
-                for datum in data:
-                    voters.append(Voter(datum[0], datum[1], datum[2], datum[3], datum[4], datum[5], datum[6], datum[7]))
-                                    
-                return voters
-        except Exception as e:
-            print(e)
-            return []
-    
-    def get_voter(self, id=None, fingerprint_hash=None):
-        self.ensure_connection()
-        try:
-            with self.conn.cursor() as cursor:
-                query = f"""SELECT voters.id, id_number, first_name, last_name, other_name, phone, polling_station_id, ward_id, constituency_id, county_id 
-                FROM {self.schema}.voters
-                JOIN {self.schema}.polling_stations ON polling_station_id = polling_stations.id
-                JOIN {self.schema}.wards ON polling_stations.ward_id = wards.id
-                JOIN {self.schema}.constituencies ON wards.constituency_id = constituencies.id
-                """
                 if id is not None:
-                    query = f"{query} WHERE voters.id = %s"
-                    cursor.execute(query, (id,))
+                    query = f"{query} AND voters.id = %s"
+                    params.append(id)
+                if id_number is not None:
+                    query = f"{query} AND id_number = %s"
+                    params.append(id_number)
                 else:
-                    query = f"{query} WHERE fingerprint_hash = %s"
-                    cursor.execute(query, (fingerprint_hash,))
+                    query = f"{query} AND fingerprint_hash = %s"
+                    params.append(fingerprint_hash)
+                cursor.execute(query, tuple(params))
                 data = cursor.fetchone()
                 if data:
-                    return Voter(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9])
+                    return Voter(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10])
                 else:
                     return None
         except Exception as e:
@@ -638,6 +634,87 @@ class Db():
             print(e)
             return []            
     
+    def insert_candidate(self, id, voter_id, party_id, election_id, icon):
+        self.ensure_connection()
+        try:
+            with self.conn.cursor() as cursor:
+                query = f"INSERT INTO {self.schema}.candidates (id, voter_id, party_id, election_id, icon) VALUES (%s, %s, %s, %s, %s)"
+                cursor.execute(query, (id, voter_id, party_id, election_id, icon))
+                self.conn.commit()
+                return True
+        except Exception as e:
+            print(e)
+            return False
+    
+    def update_candidate(self, id, name, icon):
+        self.ensure_connection()
+        try:
+            with self.conn.cursor() as cursor:
+                query = f"UPDATE {self.schema}.parties SET name = %s, icon = %s WHERE id = %s"
+                cursor.execute(query, (name, icon, id))
+                self.conn.commit()
+                return True
+        except Exception as e:
+            print(e)
+            return False
+    
+    def delete_candidate(self, id):
+        self.ensure_connection()
+        try:
+            with self.conn.cursor() as cursor:
+                query = f"DELETE FROM {self.schema}.candidates WHERE id = %s"
+                cursor.execute(query, (id,))
+                self.conn.commit()
+                return True
+        except Exception as e:
+            print(e)
+            return False
+    
+    def get_candidates(self, polling_station_id=None, ward_id=None, constituency_id=None, county_id=None):
+        self.ensure_connection()
+        try:
+            with self.conn.cursor() as cursor:
+                query = f"""
+                SELECT candidates.id, v.id_number, CONCAT(v.first_name,' ',v.last_name,' ',v.other_name) AS name, v.phone, candidates.icon,
+                polling_stations.name AS polling_station_name, wards.name AS ward_name,constituencies.name AS constituencies_name, counties.name AS county_name,
+                election_id, elections.name AS election_name, party_id, parties.name AS party_name, parties.icon AS party_icon, 
+                CONCAT(v2.first_name,' ',v2.last_name,' ',v2.other_name) AS running_mate_name, running_mate_icon
+                FROM {self.schema}.candidates
+                JOIN {self.schema}.voters v ON voter_id = v.id
+                JOIN {self.schema}.polling_stations ON polling_station_id = polling_stations.id 
+                JOIN {self.schema}.wards ON ward_id = wards.id   
+                JOIN {self.schema}.constituencies ON constituency_id = constituencies.id
+                JOIN {self.schema}.counties ON county_id = counties.id
+                JOIN {self.schema}.elections ON election_id = elections.id
+                JOIN {self.schema}.parties ON party_id = parties.id
+                LEFT JOIN {self.schema}.voters v2 ON running_mate_voter_id = v2.id
+                WHERE 1=1       
+                """
+                params = []
+                if polling_station_id is not None:
+                    query = f"{query} AND polling_station_id = %s"
+                    params.append(polling_station_id)
+                if ward_id is not None:
+                    query = f"{query} AND ward_id = %s"
+                    params.append(ward_id)
+                if constituency_id is not None:
+                    query = f"{query} AND constituency_id = %s"
+                    params.append(constituency_id)
+                if county_id is not None:
+                    query = f"{query} AND county_id = %s"
+                    params.append(county_id)
+                query = f"{query} ORDER BY id_number"
+                cursor.execute(query, tuple(params))
+                data = cursor.fetchall()
+                candidates = []
+                for datum in data:
+                    candidates.append(Candidate(datum[0], datum[1], datum[2], datum[3], datum[4], datum[5], datum[6], datum[7], datum[8], datum[9], datum[10], datum[11], datum[12], datum[13], datum[14], datum[15]))
+                                    
+                return candidates
+        except Exception as e:
+            print(e)
+            return []
+    
     def get_registered_voters(self, polling_station_id=None, ward_id=None, constituency_id=None, county_id=None):
         self.ensure_connection()
         try:
@@ -665,7 +742,6 @@ class Db():
                 
                 cursor.execute(query, params)
                 data = cursor.fetchone()
-                print(data)
                 if data:
                     return data[0]
                 else:
