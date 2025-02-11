@@ -24,28 +24,24 @@ class Candidates():
             
     def edit(self):  
         try:
-            id = request.form['editVoterId']
-            id_number = request.form['VoterIdNumber']
-            first_name = request.form['VoterFirstName'] 
-            last_name = request.form['VoterLastName']
-            other_name = request.form['VoterOtherName']
-            phone = request.form['VoterPhone'] 
-            polling_station_id = request.form['VoterPollingStationId']
-            fingerprint_hash = ''
-            if self.db.update_voter(id, id_number, first_name.upper(), last_name.upper(), other_name.upper(), phone, polling_station_id, fingerprint_hash):
-                success=f'{first_name} {last_name} Updated Successful.'
+            id = request.form['editCandidateId']
+            party_id = request.form['CandidatePartyId'] 
+            election_id = request.form['CandidateElectionId']
+            icon = request.form['CandidateIcon']
+            if self.db.update_candidate(id, party_id, election_id, icon):
+                success=f'Candidate Updated Successful.'
                 error=None
             else:
                 success=None
-                error=f'An error occurred while updating {first_name} {last_name}.'
+                error=f'An error occurred while updating Candidate.'
             return success, error
         except Exception as e:
             return None, e
             
     def delete(self):  
         try:
-            id = request.form['removeVoterId']
-            if self.db.delete_polling_station(id):
+            id = request.form['removeCandidateId']
+            if self.db.delete_candidate(id):
                 success=f'Voter Deleted Successful.'
                 error=None
             else:
