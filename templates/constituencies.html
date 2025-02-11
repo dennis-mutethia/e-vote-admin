@@ -36,6 +36,7 @@
                                 <th>CONSTITUENCY NAME</th>
                                 <th>COUNTY NAME</th>
                                 <th class="text-center">WARDS</th>
+                                <th class="text-center">POLLING STATIONS</th>
                                 <th class="text-center" style="width: 10%">Action</th>
                             </tr>
                         </thead>
@@ -48,6 +49,14 @@
                                 <td class="text-center">
                                     {% if constituency.ttl_wards %}
                                         <a href="{{ url_for('wards', constituency=constituency.id) }}">{{ constituency.ttl_wards }}</a>
+                                    {% else %}
+                                        0
+                                    {% endif %}
+                                </td>
+                                
+                                <td class="text-center">
+                                    {% if constituency.ttl_stations %}
+                                        <a href="{{ url_for('polling_stations', constituency=constituency.id) }}">{{ constituency.ttl_stations }}</a>
                                     {% else %}
                                         0
                                     {% endif %}
