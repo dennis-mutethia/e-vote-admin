@@ -1,8 +1,11 @@
+
+import os, psycopg2, uuid
 from flask_login import current_user
-import os, psycopg2
-import uuid
+from dotenv import load_dotenv
 
 from utils.entities import Candidate, Constituency, County, Election, MyVote, Party, PollingStation, Voter, Ward
+
+load_dotenv()
 
 class Db():
     def __init__(self):
@@ -31,8 +34,7 @@ class Db():
             # Reconnect if the connection is invalid
             self.conn = psycopg2.connect(**self.conn_params)        
     
-    def insert_county(self, code, name):
-        id = str(uuid.uuid5(uuid.NAMESPACE_DNS, (f'{code}-{name}')))
+    def insert_county(self, id, code, name):        
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
@@ -61,28 +63,27 @@ class Db():
         try:
             with self.conn.cursor() as cursor:
                 query = f"""
-                WITH constituencies AS(
-                    SELECT county_id, COUNT(*) AS ttl_constituencies FROM {self.schema}.constituencies 
-                    GROUP BY county_id
-                )
-                SELECT id, code, name, ttl_constituencies
+                SELECT counties.id, counties.code, counties.name, 
+                COUNT(DISTINCT constituencies.id) AS ttl_constituencies, COUNT(DISTINCT wards.id) AS ttl_wards, COUNT(DISTINCT polling_stations.id) AS ttl_stations
                 FROM {self.schema}.counties
-                LEFT JOIN constituencies ON counties.id = constituencies.county_id
-                ORDER BY code
+                LEFT JOIN {self.schema}.constituencies ON counties.id = constituencies.county_id
+                LEFT JOIN {self.schema}.wards ON constituencies.id = wards.constituency_id   
+                LEFT JOIN {self.schema}.polling_stations ON wards.id = polling_stations.ward_id 
+                GROUP BY counties.id, counties.code, counties.name
+                ORDER BY counties.code
                 """
                 cursor.execute(query)
                 data = cursor.fetchall()
                 counties = []
                 for datum in data:
-                    counties.append(County(datum[0], datum[1], datum[2], datum[3]))
+                    counties.append(County(datum[0], datum[1], datum[2], datum[3], datum[4], datum[5]))
                 
                 return counties
         except Exception as e:
             print(e)
             return []            
     
-    def insert_constituency(self, code, county_id, name):
-        id = str(uuid.uuid5(uuid.NAMESPACE_DNS, (f'{code}-{county_id}-{name}')))
+    def insert_constituency(self, id, code, county_id, name):
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
@@ -110,34 +111,33 @@ class Db():
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"""
-                WITH wards AS(
-                    SELECT constituency_id, COUNT(*) AS ttl_wards FROM {self.schema}.wards 
-                    GROUP BY constituency_id
-                )
-                SELECT constituencies.id, constituencies.code, constituencies.name, county_id, counties.name, ttl_wards
+                query = f"""SELECT constituencies.id, constituencies.code, constituencies.name, county_id, counties.name,
+                COUNT(DISTINCT wards.id) AS ttl_wards, COUNT(DISTINCT polling_stations.id) AS ttl_stations
                 FROM {self.schema}.constituencies
                 JOIN {self.schema}.counties ON county_id = counties.id
-                LEFT JOIN wards ON constituencies.id = wards.constituency_id                
+                LEFT JOIN {self.schema}.wards ON constituencies.id = wards.constituency_id   
+                LEFT JOIN {self.schema}.polling_stations ON wards.id = polling_stations.ward_id 
                 """
                 params = []
                 if county_id is not None:
                     query = f"{query} WHERE county_id = %s"
                     params.append(county_id)
-                query = f"{query} ORDER BY constituencies.code"
+                query = f"""{query} 
+                GROUP BY constituencies.id, constituencies.code, constituencies.name, county_id, counties.name
+                ORDER BY constituencies.code     
+                """
                 cursor.execute(query, tuple(params))
                 data = cursor.fetchall()
                 constituencies = []
                 for datum in data:
-                    constituencies.append(Constituency(datum[0], datum[1], datum[2], datum[3], datum[4], datum[5]))
+                    constituencies.append(Constituency(datum[0], datum[1], datum[2], datum[3], datum[4], datum[5], datum[6]))
                                     
                 return constituencies
         except Exception as e:
             print(e)
             return []
        
-    def insert_ward(self, code, constituency_id, name):
-        id = str(uuid.uuid5(uuid.NAMESPACE_DNS, (f'{code}-{constituency_id}-{name}')))
+    def insert_ward(self, id, code, constituency_id, name):
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
@@ -160,7 +160,19 @@ class Db():
         except Exception as e:
             print(e)
             return False
-      
+    
+    def delete_ward(self, id):
+        self.ensure_connection()
+        try:
+            with self.conn.cursor() as cursor:
+                query = f"DELETE FROM {self.schema}.wards WHERE id = %s"
+                cursor.execute(query, (id,))
+                self.conn.commit()
+                return True
+        except Exception as e:
+            print(e)
+            return False
+    
     def get_wards(self, constituency_id=None, county_id=None):
         self.ensure_connection()
         try:

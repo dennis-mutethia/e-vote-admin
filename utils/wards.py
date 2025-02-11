@@ -9,7 +9,8 @@ class Wards():
             code = request.form['WardCode']
             constituency_id = request.form['ConstituencyId'] 
             name = request.form['WardName']
-            if self.db.insert_ward(code, constituency_id, name.upper()):
+            id = str(uuid.uuid5(uuid.NAMESPACE_DNS, (f'{constituency_id}-{int(code)}')))
+            if self.db.insert_ward(id, code, constituency_id, name.upper()):
                 success=f'{name} Ward Saved Successful.'
                 error=None
             else:
@@ -34,6 +35,19 @@ class Wards():
             return success, error
         except Exception as e:
             return None, e
+            
+    def delete(self):  
+        try:
+            id = request.form['removeWardId']
+            if self.db.delete_ward(id):
+                success=f'Ward Deleted Successful.'
+                error=None
+            else:
+                success=None
+                error=f'An error occurred while deleting Ward.'
+            return success, error
+        except Exception as e:
+            return None, e
            
     def __call__(self):
         success = None
@@ -43,6 +57,8 @@ class Wards():
                 success, error = self.add()
             if request.form['action'] == 'edit':
                 success, error = self.edit()
+            if request.form['action'] == 'remove':
+                success, error = self.delete()
         
         county_id = request.args.get('county') or None
         counties = self.db.get_counties()

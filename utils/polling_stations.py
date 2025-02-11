@@ -10,7 +10,7 @@ class PollingStations():
             code = request.form['PollingStationCode']
             ward_id = request.form['WardId'] 
             name = request.form['PollingStationName']
-            id = str(uuid.uuid5(uuid.NAMESPACE_DNS, (f'{code}-{ward_id}-{name}')))
+            id = str(uuid.uuid5(uuid.NAMESPACE_DNS, (f'{ward_id}-{code}')))
             if self.db.insert_polling_station(id, code, ward_id, name.upper()):
                 self.db.create_partition('voters', id)
                 self.db.create_partition('votes', id)

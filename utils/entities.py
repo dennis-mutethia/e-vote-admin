@@ -25,20 +25,23 @@ class User(UserMixin):
         self.level = level
 
 class County():
-    def __init__(self, id, code, name, ttl_constituencies):
+    def __init__(self, id, code, name, ttl_constituencies, ttl_wards, ttl_stations):
         self.id = id
         self.code = int(code)
         self.name = name
         self.ttl_constituencies = ttl_constituencies
+        self.ttl_wards = ttl_wards
+        self.ttl_stations = ttl_stations
 
 class Constituency():
-    def __init__(self, id, code, name, county_id, county_name, ttl_wards):
+    def __init__(self, id, code, name, county_id, county_name, ttl_wards, ttl_stations):
         self.id = id
         self.code = int(code)
         self.name = name
         self.county_id = county_id
         self.county_name = county_name
         self.ttl_wards = ttl_wards
+        self.ttl_stations = ttl_stations
 
 class Ward():
     def __init__(self, id, code, name, constituency_id, constituency_name, ttl_stations):
