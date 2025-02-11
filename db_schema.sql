@@ -1,17 +1,14 @@
-DROP TABLE IF EXISTS e_vote.counties;
-CREATE TABLE e_vote.counties (
+CREATE TABLE IF NOT EXISTS counties (
   id TEXT PRIMARY KEY,
   code TEXT,
   name TEXT,
   created_at TIMESTAMP,
   created_by TEXT,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_by TEXT,
-  UNIQUE (name)
+  updated_by TEXT
 );
 
-DROP TABLE IF EXISTS e_vote.constituencies;
-CREATE TABLE e_vote.constituencies (
+CREATE TABLE IF NOT EXISTS constituencies (
   id TEXT PRIMARY KEY,
   code TEXT,
   county_id TEXT,
@@ -19,12 +16,10 @@ CREATE TABLE e_vote.constituencies (
   created_at TIMESTAMP,
   created_by TEXT,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_by TEXT,
-  UNIQUE (name)
+  updated_by TEXT
 );
 
-DROP TABLE IF EXISTS e_vote.wards;
-CREATE TABLE e_vote.wards (
+CREATE TABLE IF NOT EXISTS wards (
   id TEXT PRIMARY KEY,
   code TEXT,
   constituency_id TEXT,
@@ -32,12 +27,10 @@ CREATE TABLE e_vote.wards (
   created_at TIMESTAMP,
   created_by TEXT,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_by TEXT,
-  UNIQUE (name)
+  updated_by TEXT
 );
 
-DROP TABLE IF EXISTS e_vote.polling_stations; 
-CREATE TABLE e_vote.polling_stations (
+CREATE TABLE IF NOT EXISTS polling_stations (
   id TEXT PRIMARY KEY,
   code TEXT,
   ward_id TEXT,
@@ -45,12 +38,10 @@ CREATE TABLE e_vote.polling_stations (
   created_at TIMESTAMP,
   created_by TEXT,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_by TEXT,
-  UNIQUE (name)
+  updated_by TEXT
 );
 
-DROP TABLE IF EXISTS e_vote.voters;
-CREATE TABLE e_vote.voters (
+CREATE TABLE IF NOT EXISTS voters (
   id TEXT,
   id_number TEXT,
   fingerprint_hash TEXT,
@@ -66,8 +57,7 @@ CREATE TABLE e_vote.voters (
   PRIMARY KEY (id_number, polling_station_id)
 ) PARTITION BY LIST (polling_station_id);
 
-DROP TABLE IF EXISTS e_vote.sms_codes; 
-CREATE TABLE e_vote.sms_codes (
+CREATE TABLE IF NOT EXISTS sms_codes (
   id TEXT,
   voter_id TEXT,
   code TEXT,
@@ -80,32 +70,27 @@ CREATE TABLE e_vote.sms_codes (
   PRIMARY KEY (id, polling_station_id)
 ) PARTITION BY LIST (polling_station_id);
 
-DROP TABLE IF EXISTS e_vote.elections; 
-CREATE TABLE e_vote.elections (
+CREATE TABLE IF NOT EXISTS elections (
   id TEXT PRIMARY KEY,
   code TEXT,
   name TEXT,
   created_at TIMESTAMP,
   created_by TEXT,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_by TEXT,
-  UNIQUE (name)
+  updated_by TEXT
 );
 
-DROP TABLE IF EXISTS e_vote.parties; 
-CREATE TABLE e_vote.parties (
+CREATE TABLE IF NOT EXISTS parties (
   id TEXT PRIMARY KEY,
   name TEXT,
   icon TEXT,
   created_at TIMESTAMP,
   created_by TEXT,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_by TEXT,
-  UNIQUE (name)
+  updated_by TEXT
 );
 
-DROP TABLE IF EXISTS e_vote.candidates; 
-CREATE TABLE e_vote.candidates (
+CREATE TABLE IF NOT EXISTS candidates (
   id TEXT PRIMARY KEY,
   voter_id TEXT,
   party_id TEXT,
@@ -122,8 +107,7 @@ CREATE TABLE e_vote.candidates (
   UNIQUE (voter_id)
 );
 
-DROP TABLE IF EXISTS e_vote.votes;
-CREATE TABLE e_vote.votes (
+CREATE TABLE IF NOT EXISTS votes (
   election_id TEXT,
   candidate_id TEXT,
   voter_id TEXT,

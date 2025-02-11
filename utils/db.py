@@ -10,35 +10,61 @@ load_dotenv()
 class Db():
     def __init__(self):
         # Access the environment variables
-        self.conn_params = {
-            'host': os.getenv('DB_HOST'),
-            'database': os.getenv('DB_NAME'),
-            'user': os.getenv('DB_USER'),
-            'password': os.getenv('DB_PASSWORD')
-        }
-        self.schema = os.getenv('DB_SCHEMA')
-        
+        # self.conn_params = {
+        #     'host': os.getenv('DB_HOST'),
+        #     'port': os.getenv('DB_PORT'),
+        #     'database': os.getenv('DB_NAME'),
+        #     'user': os.getenv('DB_USER'),
+        #     'password': os.getenv('DB_PASSWORD')
+        # }        
+            
         self.conn = None
         self.ensure_connection()
     
     def ensure_connection(self):
+        host = os.getenv('DB_HOST')
+        port = os.getenv('DB_PORT')
+        database = os.getenv('DB_NAME')
+        user = os.getenv('DB_USER')
+        password = os.getenv('DB_PASSWORD')
         try:
             # Check if the connection is open
             if self.conn is None or self.conn.closed:
-                self.conn = psycopg2.connect(**self.conn_params)
+                #self.conn = psycopg2.connect(**self.conn_params)
+                self.conn = psycopg2.connect(f"postgres://{user}:{password}@{host}:{port}/{database}?sslmode=require")                
             else:
                 # Test the connection
                 with self.conn.cursor() as cursor:
                     cursor.execute("SELECT 1")
         except Exception as e:
             # Reconnect if the connection is invalid
-            self.conn = psycopg2.connect(**self.conn_params)        
+            #self.conn = psycopg2.connect(**self.conn_params)  
+            self.conn = psycopg2.connect(f"postgres://{user}:{password}@{host}:{port}/{database}?sslmode=require")      
     
+    import os
+
+    def create_tables(self):
+        self.ensure_connection()
+        try:
+            with self.conn.cursor() as cursor:
+                # Load SQL script
+                script_path = 'db_schema.sql'
+                with open(script_path, 'r') as sql_file:
+                    sql_script = sql_file.read()
+                
+                # Execute script
+                cursor.execute(sql_script)
+                self.conn.commit()  # Don't forget to commit the transaction
+                return True
+        except Exception as e:
+            print(f"An error occurred while creating tables: {e}")
+            return False
+        
     def insert_county(self, id, code, name):        
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"INSERT INTO {self.schema}.counties (id, code, name) VALUES (%s, %s, %s)"
+                query = f"INSERT INTO counties (id, code, name) VALUES (%s, %s, %s)"
                 cursor.execute(query, (id, code, name))
                 self.conn.commit()
                 return True
@@ -50,7 +76,7 @@ class Db():
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"UPDATE {self.schema}.counties SET code = %s, name = %s WHERE id = %s"
+                query = f"UPDATE counties SET code = %s, name = %s WHERE id = %s"
                 cursor.execute(query, (code, name, id))
                 self.conn.commit()
                 return True
@@ -65,10 +91,10 @@ class Db():
                 query = f"""
                 SELECT counties.id, counties.code, counties.name, 
                 COUNT(DISTINCT constituencies.id) AS ttl_constituencies, COUNT(DISTINCT wards.id) AS ttl_wards, COUNT(DISTINCT polling_stations.id) AS ttl_stations
-                FROM {self.schema}.counties
-                LEFT JOIN {self.schema}.constituencies ON counties.id = constituencies.county_id
-                LEFT JOIN {self.schema}.wards ON constituencies.id = wards.constituency_id   
-                LEFT JOIN {self.schema}.polling_stations ON wards.id = polling_stations.ward_id 
+                FROM counties
+                LEFT JOIN constituencies ON counties.id = constituencies.county_id
+                LEFT JOIN wards ON constituencies.id = wards.constituency_id   
+                LEFT JOIN polling_stations ON wards.id = polling_stations.ward_id 
                 GROUP BY counties.id, counties.code, counties.name
                 ORDER BY counties.code
                 """
@@ -87,7 +113,7 @@ class Db():
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"INSERT INTO {self.schema}.constituencies (id, code, county_id, name) VALUES (%s, %s, %s, %s)"
+                query = f"INSERT INTO constituencies (id, code, county_id, name) VALUES (%s, %s, %s, %s)"
                 cursor.execute(query, (id, code, county_id, name))
                 self.conn.commit()
                 return True
@@ -99,7 +125,7 @@ class Db():
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"UPDATE {self.schema}.constituencies SET code = %s, county_id=%s, name = %s WHERE id = %s"
+                query = f"UPDATE constituencies SET code = %s, county_id=%s, name = %s WHERE id = %s"
                 cursor.execute(query, (code, county_id, name, id))
                 self.conn.commit()
                 return True
@@ -113,10 +139,10 @@ class Db():
             with self.conn.cursor() as cursor:
                 query = f"""SELECT constituencies.id, constituencies.code, constituencies.name, county_id, counties.name,
                 COUNT(DISTINCT wards.id) AS ttl_wards, COUNT(DISTINCT polling_stations.id) AS ttl_stations
-                FROM {self.schema}.constituencies
-                JOIN {self.schema}.counties ON county_id = counties.id
-                LEFT JOIN {self.schema}.wards ON constituencies.id = wards.constituency_id   
-                LEFT JOIN {self.schema}.polling_stations ON wards.id = polling_stations.ward_id 
+                FROM constituencies
+                JOIN counties ON county_id = counties.id
+                LEFT JOIN wards ON constituencies.id = wards.constituency_id   
+                LEFT JOIN polling_stations ON wards.id = polling_stations.ward_id 
                 """
                 params = []
                 if county_id is not None:
@@ -141,7 +167,7 @@ class Db():
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"INSERT INTO {self.schema}.wards (id, code, constituency_id, name) VALUES (%s, %s, %s, %s)"
+                query = f"INSERT INTO wards (id, code, constituency_id, name) VALUES (%s, %s, %s, %s)"
                 cursor.execute(query, (id, code, constituency_id, name))
                 self.conn.commit()
                 return True
@@ -153,7 +179,7 @@ class Db():
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"UPDATE {self.schema}.wards SET code = %s, constituency_id=%s, name = %s WHERE id = %s"
+                query = f"UPDATE wards SET code = %s, constituency_id=%s, name = %s WHERE id = %s"
                 cursor.execute(query, (code, constituency_id, name, id))
                 self.conn.commit()
                 return True
@@ -165,7 +191,7 @@ class Db():
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"DELETE FROM {self.schema}.wards WHERE id = %s"
+                query = f"DELETE FROM wards WHERE id = %s"
                 cursor.execute(query, (id,))
                 self.conn.commit()
                 return True
@@ -179,13 +205,13 @@ class Db():
             with self.conn.cursor() as cursor:
                 query = f"""
                 WITH stations AS(
-                    SELECT ward_id, COUNT(*) AS ttl_stations FROM {self.schema}.polling_stations 
+                    SELECT ward_id, COUNT(*) AS ttl_stations FROM polling_stations 
                     GROUP BY ward_id
                 )
                 SELECT wards.id, wards.code, wards.name, constituency_id, constituencies.name, ttl_stations
-                FROM {self.schema}.wards
-                JOIN {self.schema}.constituencies ON constituency_id = constituencies.id
-                JOIN {self.schema}.counties ON county_id = counties.id
+                FROM wards
+                JOIN constituencies ON constituency_id = constituencies.id
+                JOIN counties ON county_id = counties.id
                 LEFT JOIN stations ON wards.id = stations.ward_id 
                 WHERE 1=1               
                 """
@@ -212,7 +238,7 @@ class Db():
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"INSERT INTO {self.schema}.polling_stations (id, code, ward_id, name) VALUES (%s, %s, %s, %s)"
+                query = f"INSERT INTO polling_stations (id, code, ward_id, name) VALUES (%s, %s, %s, %s)"
                 cursor.execute(query, (id, code, ward_id, name))
                 self.conn.commit()
                 return True
@@ -224,7 +250,7 @@ class Db():
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"UPDATE {self.schema}.polling_stations SET code = %s, ward_id=%s, name = %s WHERE id = %s"
+                query = f"UPDATE polling_stations SET code = %s, ward_id=%s, name = %s WHERE id = %s"
                 cursor.execute(query, (code, ward_id, name, id))
                 self.conn.commit()
                 return True
@@ -236,7 +262,7 @@ class Db():
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"DELETE FROM {self.schema}.polling_stations WHERE id = %s"
+                query = f"DELETE FROM polling_stations WHERE id = %s"
                 cursor.execute(query, (id,))
                 self.conn.commit()
                 return True
@@ -250,14 +276,14 @@ class Db():
             with self.conn.cursor() as cursor:
                 query = f"""
                 WITH voters AS(
-                    SELECT polling_station_id, COUNT(*) AS ttl_voters FROM {self.schema}.voters 
+                    SELECT polling_station_id, COUNT(*) AS ttl_voters FROM voters 
                     GROUP BY polling_station_id
                 )
                 SELECT polling_stations.id, polling_stations.code, polling_stations.name, ward_id, wards.name, ttl_voters
-                FROM {self.schema}.polling_stations
-                JOIN {self.schema}.wards ON ward_id = wards.id   
-                JOIN {self.schema}.constituencies ON constituency_id = constituencies.id
-                JOIN {self.schema}.counties ON county_id = counties.id
+                FROM polling_stations
+                JOIN wards ON ward_id = wards.id   
+                JOIN constituencies ON constituency_id = constituencies.id
+                JOIN counties ON county_id = counties.id
                 LEFT JOIN voters ON polling_stations.id = voters.polling_station_id    
                 WHERE 1=1                 
                 """
@@ -287,7 +313,7 @@ class Db():
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"""INSERT INTO {self.schema}.voters (id, id_number, first_name, last_name, other_name, phone, polling_station_id, fingerprint_hash) 
+                query = f"""INSERT INTO voters (id, id_number, first_name, last_name, other_name, phone, polling_station_id, fingerprint_hash) 
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
                 cursor.execute(query, (id, id_number, first_name, last_name, other_name, phone, polling_station_id, fingerprint_hash))
                 self.conn.commit()
@@ -300,7 +326,7 @@ class Db():
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"""UPDATE {self.schema}.voters SET 
+                query = f"""UPDATE voters SET 
                 id_number = %s, first_name=%s, last_name = %s, other_name = %s, phone=%s, polling_station_id = %s, fingerprint_hash = %s
                 WHERE id = %s"""
                 cursor.execute(query, (id_number, first_name, last_name, other_name, phone, polling_station_id, fingerprint_hash, id))
@@ -314,7 +340,7 @@ class Db():
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"DELETE FROM {self.schema}.voters WHERE id = %s"
+                query = f"DELETE FROM voters WHERE id = %s"
                 cursor.execute(query, (id,))
                 self.conn.commit()
                 return True
@@ -328,11 +354,11 @@ class Db():
             with self.conn.cursor() as cursor:
                 query = f"""
                 SELECT voters.id, id_number, first_name, last_name, other_name, phone, polling_station_id, polling_stations.name, wards.name, constituencies.name, counties.name
-                FROM {self.schema}.voters
-                JOIN {self.schema}.polling_stations ON polling_station_id = polling_stations.id 
-                JOIN {self.schema}.wards ON ward_id = wards.id   
-                JOIN {self.schema}.constituencies ON constituency_id = constituencies.id
-                JOIN {self.schema}.counties ON county_id = counties.id
+                FROM voters
+                JOIN polling_stations ON polling_station_id = polling_stations.id 
+                JOIN wards ON ward_id = wards.id   
+                JOIN constituencies ON constituency_id = constituencies.id
+                JOIN counties ON county_id = counties.id
                 WHERE 1=1     
                 """
                 params = []
@@ -366,11 +392,11 @@ class Db():
             with self.conn.cursor() as cursor:
                 query = f"""
                 SELECT voters.id, id_number, first_name, last_name, other_name, phone, polling_station_id, polling_stations.name, wards.name, constituencies.name, counties.name
-                FROM {self.schema}.voters
-                JOIN {self.schema}.polling_stations ON polling_station_id = polling_stations.id 
-                JOIN {self.schema}.wards ON ward_id = wards.id   
-                JOIN {self.schema}.constituencies ON constituency_id = constituencies.id
-                JOIN {self.schema}.counties ON county_id = counties.id
+                FROM voters
+                JOIN polling_stations ON polling_station_id = polling_stations.id 
+                JOIN wards ON ward_id = wards.id   
+                JOIN constituencies ON constituency_id = constituencies.id
+                JOIN counties ON county_id = counties.id
                 WHERE 1=1
                 """
                 params = []
@@ -398,7 +424,7 @@ class Db():
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"INSERT INTO {self.schema}.sms_codes (id, voter_id, polling_station_id, code) VALUES (%s, %s, %s, %s)"
+                query = f"INSERT INTO sms_codes (id, voter_id, polling_station_id, code) VALUES (%s, %s, %s, %s)"
                 cursor.execute(query, (id, voter.id, voter.polling_station_id, code))
                 self.conn.commit()
                 return True
@@ -410,7 +436,7 @@ class Db():
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"SELECT code FROM {self.schema}.sms_codes WHERE voter_id = %s AND status = 0 ORDER BY created_at DESC LIMIT 1"
+                query = f"SELECT code FROM sms_codes WHERE voter_id = %s AND status = 0 ORDER BY created_at DESC LIMIT 1"
                 cursor.execute(query, (voter_id,))
                 data = cursor.fetchone()
                 if data:
@@ -425,7 +451,7 @@ class Db():
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"UPDATE {self.schema}.sms_codes SET status = 1 WHERE voter_id = %s"
+                query = f"UPDATE sms_codes SET status = 1 WHERE voter_id = %s"
                 cursor.execute(query, (voter_id,))
                 self.conn.commit()
                 return True
@@ -438,9 +464,9 @@ class Db():
         try:
             with self.conn.cursor() as cursor:
                 query = f"""SELECT id, name 
-                    FROM {self.schema}.elections 
+                    FROM elections 
                     WHERE id NOT IN(
-                        SELECT election_id FROM {self.schema}.votes WHERE voter_id = %s
+                        SELECT election_id FROM votes WHERE voter_id = %s
                     )
                     ORDER BY code ASC LIMIT 1
                 """
@@ -463,10 +489,10 @@ class Db():
                 CONCAT(v.first_name, ' ', v.last_name, ' ', v.other_name) AS name, 
                 CONCAT(v2.first_name, ' ', v2.last_name, ' ', v2.other_name) AS running_mate_name,
                 p.name AS party_name, p.icon AS party_icon
-                FROM {self.schema}.candidates c
-                JOIN {self.schema}.voters v ON v.id = c.voter_id
-                JOIN {self.schema}.voters v2 ON v2.id = c.running_mate_voter_id
-                JOIN {self.schema}.parties p ON p.id = c.party_id
+                FROM candidates c
+                JOIN voters v ON v.id = c.voter_id
+                JOIN voters v2 ON v2.id = c.running_mate_voter_id
+                JOIN parties p ON p.id = c.party_id
                 WHERE c.election_id = %s
                 """
                 cursor.execute(query, (election_id,))
@@ -484,7 +510,7 @@ class Db():
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"""INSERT INTO {self.schema}.votes 
+                query = f"""INSERT INTO votes 
                 (election_id, candidate_id, voter_id, polling_station_id, ward_id, constituency_id, county_id, created_at) 
                 VALUES (%s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
                 """
@@ -500,8 +526,8 @@ class Db():
         try:
             with self.conn.cursor() as cursor:
                 query = f"""
-                CREATE TABLE IF NOT EXISTS {self.schema}.{name}_{polling_station_id.replace('-', '_')} 
-                PARTITION OF {self.schema}.{name} FOR VALUES IN ('{polling_station_id}')
+                CREATE TABLE IF NOT EXISTS {name}_{polling_station_id.replace('-', '_')} 
+                PARTITION OF {name} FOR VALUES IN ('{polling_station_id}')
                 """
                 cursor.execute(query)
                 self.conn.commit()
@@ -514,7 +540,7 @@ class Db():
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"DROP TABLE IF EXISTS {self.schema}.{name}_{polling_station_id.replace('-', '_')}"
+                query = f"DROP TABLE IF EXISTS {name}_{polling_station_id.replace('-', '_')}"
                 cursor.execute(query)
                 self.conn.commit()
                 return True
@@ -529,9 +555,9 @@ class Db():
                 query = f"""
                 WITH votes AS(
                     SELECT votes.election_id, CONCAT(first_name, ' ', last_name, ' ', other_name) AS candidate_name, icon
-                    FROM {self.schema}.votes 
-                    LEFT JOIN {self.schema}.candidates ON candidate_id = candidates.id
-                    LEFT JOIN {self.schema}.voters ON candidates.voter_id = voters.id
+                    FROM votes 
+                    LEFT JOIN candidates ON candidate_id = candidates.id
+                    LEFT JOIN voters ON candidates.voter_id = voters.id
                     WHERE votes.voter_id = %s
                 )
                 SELECT elections.code, elections.name, candidate_name, icon
@@ -555,7 +581,7 @@ class Db():
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"INSERT INTO {self.schema}.elections (id, code, name) VALUES (%s, %s, %s)"
+                query = f"INSERT INTO elections (id, code, name) VALUES (%s, %s, %s)"
                 cursor.execute(query, (id, code, name))
                 self.conn.commit()
                 return True
@@ -567,7 +593,7 @@ class Db():
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"UPDATE {self.schema}.elections SET code = %s, name = %s WHERE id = %s"
+                query = f"UPDATE elections SET code = %s, name = %s WHERE id = %s"
                 cursor.execute(query, (code, name, id))
                 self.conn.commit()
                 return True
@@ -581,11 +607,11 @@ class Db():
             with self.conn.cursor() as cursor:
                 query = f"""
                 WITH candidates AS(
-                    SELECT election_id, COUNT(*) AS ttl_candidates FROM {self.schema}.candidates 
+                    SELECT election_id, COUNT(*) AS ttl_candidates FROM candidates 
                     GROUP BY election_id
                 )
                 SELECT id, code, name, ttl_candidates
-                FROM {self.schema}.elections
+                FROM elections
                 LEFT JOIN candidates ON elections.id = candidates.election_id
                 ORDER BY code
                 """
@@ -605,7 +631,7 @@ class Db():
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"INSERT INTO {self.schema}.parties (id, name, icon) VALUES (%s, %s, %s)"
+                query = f"INSERT INTO parties (id, name, icon) VALUES (%s, %s, %s)"
                 cursor.execute(query, (id, name, icon))
                 self.conn.commit()
                 return True
@@ -617,7 +643,7 @@ class Db():
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"UPDATE {self.schema}.parties SET name = %s, icon = %s WHERE id = %s"
+                query = f"UPDATE parties SET name = %s, icon = %s WHERE id = %s"
                 cursor.execute(query, (name, icon, id))
                 self.conn.commit()
                 return True
@@ -629,7 +655,7 @@ class Db():
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"DELETE FROM {self.schema}.parties WHERE id = %s"
+                query = f"DELETE FROM parties WHERE id = %s"
                 cursor.execute(query, (id,))
                 self.conn.commit()
                 return True
@@ -643,11 +669,11 @@ class Db():
             with self.conn.cursor() as cursor:
                 query = f"""
                 WITH candidates AS(
-                    SELECT party_id, COUNT(*) AS ttl_candidates FROM {self.schema}.candidates 
+                    SELECT party_id, COUNT(*) AS ttl_candidates FROM candidates 
                     GROUP BY party_id
                 )
                 SELECT id, name, icon, ttl_candidates
-                FROM {self.schema}.parties
+                FROM parties
                 LEFT JOIN candidates ON parties.id = candidates.party_id
                 ORDER BY parties.name
                 """
@@ -666,7 +692,7 @@ class Db():
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"INSERT INTO {self.schema}.candidates (id, voter_id, party_id, election_id, icon) VALUES (%s, %s, %s, %s, %s)"
+                query = f"INSERT INTO candidates (id, voter_id, party_id, election_id, icon) VALUES (%s, %s, %s, %s, %s)"
                 cursor.execute(query, (id, voter_id, party_id, election_id, icon))
                 self.conn.commit()
                 return True
@@ -678,7 +704,7 @@ class Db():
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"UPDATE {self.schema}.candidates SET party_id = %s, election_id = %s, icon = %s WHERE id = %s"
+                query = f"UPDATE candidates SET party_id = %s, election_id = %s, icon = %s WHERE id = %s"
                 cursor.execute(query, (party_id, election_id, icon, id))
                 self.conn.commit()
                 return True
@@ -690,7 +716,7 @@ class Db():
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"DELETE FROM {self.schema}.candidates WHERE id = %s"
+                query = f"DELETE FROM candidates WHERE id = %s"
                 cursor.execute(query, (id,))
                 self.conn.commit()
                 return True
@@ -707,15 +733,15 @@ class Db():
                 polling_stations.name AS polling_station_name, wards.name AS ward_name,constituencies.name AS constituencies_name, counties.name AS county_name,
                 election_id, elections.name AS election_name, party_id, parties.name AS party_name, parties.icon AS party_icon, 
                 CONCAT(v2.first_name,' ',v2.last_name,' ',v2.other_name) AS running_mate_name, running_mate_icon
-                FROM {self.schema}.candidates
-                JOIN {self.schema}.voters v ON voter_id = v.id
-                JOIN {self.schema}.polling_stations ON polling_station_id = polling_stations.id 
-                JOIN {self.schema}.wards ON ward_id = wards.id   
-                JOIN {self.schema}.constituencies ON constituency_id = constituencies.id
-                JOIN {self.schema}.counties ON county_id = counties.id
-                JOIN {self.schema}.elections ON election_id = elections.id
-                JOIN {self.schema}.parties ON party_id = parties.id
-                LEFT JOIN {self.schema}.voters v2 ON running_mate_voter_id = v2.id
+                FROM candidates
+                JOIN voters v ON voter_id = v.id
+                JOIN polling_stations ON polling_station_id = polling_stations.id 
+                JOIN wards ON ward_id = wards.id   
+                JOIN constituencies ON constituency_id = constituencies.id
+                JOIN counties ON county_id = counties.id
+                JOIN elections ON election_id = elections.id
+                JOIN parties ON party_id = parties.id
+                LEFT JOIN voters v2 ON running_mate_voter_id = v2.id
                 WHERE 1=1       
                 """
                 params = []
@@ -748,10 +774,10 @@ class Db():
         try:
             with self.conn.cursor() as cursor:
                 query = f"""SELECT COUNT(*)
-                FROM {self.schema}.voters
-                JOIN {self.schema}.polling_stations ON polling_station_id = polling_stations.id 
-                JOIN {self.schema}.wards ON ward_id = wards.id   
-                JOIN {self.schema}.constituencies ON constituency_id = constituencies.id
+                FROM voters
+                JOIN polling_stations ON polling_station_id = polling_stations.id 
+                JOIN wards ON ward_id = wards.id   
+                JOIN constituencies ON constituency_id = constituencies.id
                 WHERE 1=1      
                 """
                 params = []
