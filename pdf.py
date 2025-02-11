@@ -3,6 +3,7 @@ import pdfplumber, uuid
 from utils.db import Db
 
 db = Db()
+
 def extract_data_from_pdf(pdf_path):
     with pdfplumber.open(pdf_path) as pdf:        
         county_id_old = ''
@@ -30,8 +31,13 @@ def extract_data_from_pdf(pdf_path):
                         ward_id_old = ward_id
                     if polling_station_id != polling_station_id_old:
                         db.insert_polling_station(polling_station_id, int(row[6]), ward_id, row[7].upper())
+                        db.create_partition('voters', polling_station_id)
+                        db.create_partition('votes', polling_station_id)
+                        db.create_partition('sms_codes', polling_station_id)
                         polling_station_id_old = polling_station_id
 
 if __name__ == '__main__':
+    #db.create_tables()
+    
     pdf_path = 'polling_stations.pdf'
     extract_data_from_pdf(pdf_path)
