@@ -74,6 +74,7 @@
                                 <th>WARD</th>
                                 <th>POLLING STATION</th>
                                 <th>ELECTION VIED</th>
+                                <th>PARTY NAME</th>
                                 <th>RUNNING MATE</th>
                                 <th class="text-center">ICON</th>
                                 <th class="text-center" style="width: 10%">Action</th>
@@ -89,7 +90,8 @@
                                 <td>{{ candidate.constituency_name }}</td>
                                 <td>{{ candidate.ward_name }}</td>
                                 <td>{{ candidate.polling_station_name }}</td>
-                                <td>{{ candidate.election_name }}</td>                                
+                                <td>{{ candidate.election_name }}</td>          
+                                <td>{{ candidate.party_name }}</td>                                
                                 <td>{{ candidate.running_mate_name }}</td>
                                 <td class="text-center avatar-xs">
                                     <img src="{{ candidate.icon }}" alt="candidate icon" class="avatar-img rounded-circle">
@@ -98,7 +100,7 @@
                                     <div class="form-button-action">
                                         <button type="button" title="Edit this Candidate" data-toggle="modal"
                                             data-target="#addCandidateModal"
-                                            onclick="editCandidate('{{ candidate.id }}', '{{ candidate.party_name }}', '{{ candidate.election_name }}', '{{ candidate.icon }}', '{{ candidate.other_name }}')"
+                                            onclick="editCandidate('{{ candidate.id }}', '{{ candidate.id_number }}', '{{ candidate.name }}', '{{ candidate.phone }}', '{{ candidate.county_name }}', '{{ candidate.constituency_name }}', '{{ candidate.ward_name }}', '{{ candidate.polling_station_name }}', '{{ candidate.election_name }}', '{{ candidate.party_name }}', '{{ candidate.icon }}')"
                                             class="btn btn-link btn-primary btn-lg"
                                             data-original-title="Edit this Candidate">
                                             <i class="fa fa-edit"></i>
@@ -178,43 +180,43 @@
                         <div class="col-sm-12">
                             <div class="form-group form-group-default">
                                 <label>Candidate Id Number</label>
-                                <label>{{ voter.id_number if voter }}</label>
+                                <label id="CandidateIdNumber">{{ voter.id_number if voter }}</label>
                             </div>
                         </div>
                         <div class="col-sm-12">
                             <div class="form-group form-group-default">
                                 <label>Candidate Name</label>
-                                <label>{{ voter.name if voter }}</label>
+                                <label id="CandidateName">{{ voter.name if voter }}</label>
                             </div>
                         </div>
                         <div class="col-sm-12">
                             <div class="form-group form-group-default">
                                 <label>Candidate Phone Number</label>
-                                <label>{{ voter.phone if voter }}</label>
+                                <label id="CandidatePhone">{{ voter.phone if voter }}</label>
                             </div>
                         </div>
                         <div class="col-sm-12">
                             <div class="form-group form-group-default">
                                 <label>Candidate County</label>
-                                <label>{{ voter.county if voter }}</label>
+                                <label id="CandidateCountyName">{{ voter.county if voter }}</label>
                             </div>
                         </div>
                         <div class="col-sm-12">
                             <div class="form-group form-group-default">
                                 <label>Candidate Constituency</label>
-                                <label>{{ voter.constituency if voter }}</label>
+                                <label id="CandidateConstituencyName">{{ voter.constituency if voter }}</label>
                             </div>
                         </div>
                         <div class="col-sm-12">
                             <div class="form-group form-group-default">
                                 <label>Candidate Ward</label>
-                                <label>{{ voter.ward if voter }}</label>
+                                <label id="CandidateWardName">{{ voter.ward if voter }}</label>
                             </div>
                         </div>
                         <div class="col-sm-12">
                             <div class="form-group form-group-default">
                                 <label>Candidate Polling Station</label>
-                                <label>{{ voter.polling_station_name if voter }}</label>
+                                <label id="CandidatePollingStationName">{{ voter.polling_station_name if voter }}</label>
                             </div>
                         </div>
                         <div class="col-sm-12">
@@ -297,9 +299,16 @@
         });
     });
 
-    function editCandidate(id, party_name, election_name, icon) {
+    function editCandidate(id, id_number, name, phone, county_name, constituency_name, ward_name, polling_station_name, election_name, party_name, icon) {
         $('#action_label').html('Edit');
         $('#editCandidateId').val(id);
+        $('#CandidateIdNumber').html(id_number);        
+        $('#CandidateName').html(name);
+        $('#CandidatePhone').html(phone);
+        $('#CandidateCountyName').html(county_name);
+        $('#CandidateConstituencyName').html(constituency_name);
+        $('#CandidateWardName').html(ward_name);
+        $('#CandidatePollingStationName').html(polling_station_name);
         $('#CandidatePartyId option').filter(function () {
             return $(this).text() === party_name;
         }).prop('selected', true);

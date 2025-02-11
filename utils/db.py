@@ -646,12 +646,12 @@ class Db():
             print(e)
             return False
     
-    def update_candidate(self, id, name, icon):
+    def update_candidate(self, id, party_id, election_id, icon):
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"UPDATE {self.schema}.parties SET name = %s, icon = %s WHERE id = %s"
-                cursor.execute(query, (name, icon, id))
+                query = f"UPDATE {self.schema}.candidates SET party_id = %s, election_id = %s, icon = %s WHERE id = %s"
+                cursor.execute(query, (party_id, election_id, icon, id))
                 self.conn.commit()
                 return True
         except Exception as e:
