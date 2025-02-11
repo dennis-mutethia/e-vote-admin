@@ -309,27 +309,40 @@ class Db():
             print(e)
             return False   
         
-    def get_candidates(self):
+    def get_voters(self, polling_station_id=None, ward_id=None, constituency_id=None, county_id=None):
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
                 query = f"""
-                WITH candidates AS(
-                    SELECT party_id, COUNT(*) AS ttl_candidates FROM {self.schema}.candidates 
-                    GROUP BY party_id
-                )
-                SELECT id, name, icon, ttl_candidates
-                FROM {self.schema}.parties
-                LEFT JOIN candidates ON parties.id = candidates.party_id
-                ORDER BY parties.name
+                SELECT voters.id, id_number, first_name, last_name, other_name, phone, polling_station_id, polling_stations.name, wards.name, constituencies.name, counties.name
+                FROM {self.schema}.voters
+                JOIN {self.schema}.polling_stations ON polling_station_id = polling_stations.id 
+                JOIN {self.schema}.wards ON ward_id = wards.id   
+                JOIN {self.schema}.constituencies ON constituency_id = constituencies.id
+                JOIN {self.schema}.counties ON county_id = counties.id
+                WHERE 1=1     
                 """
-                cursor.execute(query)
+                params = []
+                if polling_station_id is not None:
+                    query = f"{query} AND polling_station_id = %s"
+                    params.append(polling_station_id)
+                if ward_id is not None:
+                    query = f"{query} AND ward_id = %s"
+                    params.append(ward_id)
+                if constituency_id is not None:
+                    query = f"{query} AND constituency_id = %s"
+                    params.append(constituency_id)
+                if county_id is not None:
+                    query = f"{query} AND county_id = %s"
+                    params.append(county_id)
+                query = f"{query} ORDER BY id_number"
+                cursor.execute(query, tuple(params))
                 data = cursor.fetchall()
-                elections = []
+                voters = []
                 for datum in data:
-                    elections.append(Party(datum[0], datum[1], datum[2], datum[3]))
+                    voters.append(Voter(datum[0], datum[1], datum[2], datum[3], datum[4], datum[5], datum[6], datum[7], datum[8], datum[9], datum[10]))
                 
-                return elections
+                return voters
         except Exception as e:
             print(e)
             return []            
@@ -625,11 +638,11 @@ class Db():
                 """
                 cursor.execute(query)
                 data = cursor.fetchall()
-                elections = []
+                parties = []
                 for datum in data:
-                    elections.append(Party(datum[0], datum[1], datum[2], datum[3]))
+                    parties.append(Party(datum[0], datum[1], datum[2], datum[3]))
                 
-                return elections
+                return parties
         except Exception as e:
             print(e)
             return []            
