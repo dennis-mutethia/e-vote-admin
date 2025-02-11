@@ -9,7 +9,8 @@ class Constituencies():
             code = request.form['ConstituencyCode']
             county_id = request.form['CountyId']
             name = request.form['ConstituencyName']
-            if self.db.insert_constituency(code, county_id, name.upper()):
+            id = str(uuid.uuid5(uuid.NAMESPACE_DNS, (f'{county_id}-{int(code)}')))
+            if self.db.insert_constituency(id, code, county_id, name.upper()):
                 success=f'{name} Constituency Saved Successful.'
                 error=None
             else:

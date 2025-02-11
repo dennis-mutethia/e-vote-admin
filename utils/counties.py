@@ -1,3 +1,4 @@
+import uuid
 from flask import request, render_template
 
 class Counties():
@@ -8,7 +9,8 @@ class Counties():
         try:
             code = request.form['CountyCode']
             name = request.form['CountyName']
-            if self.db.insert_county(code, name.upper()):
+            id = str(uuid.uuid5(uuid.NAMESPACE_DNS, (f'{int(code)}')))
+            if self.db.insert_county(id, code, name.upper()):
                 success=f'{name} County Saved Successful.'
                 error=None
             else:
