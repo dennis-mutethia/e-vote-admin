@@ -5,7 +5,8 @@
         "vscode": {
             "extensions": [
                 "ms-azuretools.vscode-docker",
-                "github.vscode-github-actions"
+                "github.vscode-github-actions",
+                "mechatroner.rainbow-csv"
             ],
             "settings": {
                 "terminal.integrated.defaultProfile.linux#": "/bin/bash"
