@@ -123,8 +123,8 @@ class Db():
                     query = f"{query} WHERE county_id = %s"
                     params.append(county_id)
                 query = f"""{query} 
-                GROUP BY constituencies.id, constituencies.code, constituencies.name, county_id, counties.name
-                ORDER BY constituencies.code     
+                GROUP BY constituencies.id, constituencies.code, constituencies.name, county_id, counties.code, counties.name
+                ORDER BY counties.code, constituencies.code     
                 """
                 cursor.execute(query, tuple(params))
                 data = cursor.fetchall()
@@ -185,6 +185,7 @@ class Db():
                 SELECT wards.id, wards.code, wards.name, constituency_id, constituencies.name, ttl_stations
                 FROM {self.schema}.wards
                 JOIN {self.schema}.constituencies ON constituency_id = constituencies.id
+                JOIN {self.schema}.counties ON county_id = counties.id
                 LEFT JOIN stations ON wards.id = stations.ward_id 
                 WHERE 1=1               
                 """
@@ -195,7 +196,7 @@ class Db():
                 if county_id is not None:
                     query = f"{query} AND county_id = %s"
                     params.append(county_id)
-                query = f"{query} ORDER BY wards.code"
+                query = f"{query} ORDER BY counties.code, constituencies.code, wards.code"
                 cursor.execute(query, tuple(params))
                 data = cursor.fetchall()
                 wards = []
@@ -256,6 +257,7 @@ class Db():
                 FROM {self.schema}.polling_stations
                 JOIN {self.schema}.wards ON ward_id = wards.id   
                 JOIN {self.schema}.constituencies ON constituency_id = constituencies.id
+                JOIN {self.schema}.counties ON county_id = counties.id
                 LEFT JOIN voters ON polling_stations.id = voters.polling_station_id    
                 WHERE 1=1                 
                 """
@@ -269,7 +271,7 @@ class Db():
                 if county_id is not None:
                     query = f"{query} AND county_id = %s"
                     params.append(county_id)
-                query = f"{query} ORDER BY polling_stations.code"
+                query = f"{query} ORDER BY counties.code, constituencies.code, wards.code, polling_stations.code"
                 cursor.execute(query, tuple(params))
                 data = cursor.fetchall()
                 polling_stations = []
@@ -501,7 +503,6 @@ class Db():
                 CREATE TABLE IF NOT EXISTS {self.schema}.{name}_{polling_station_id.replace('-', '_')} 
                 PARTITION OF {self.schema}.{name} FOR VALUES IN ('{polling_station_id}')
                 """
-                print(query)
                 cursor.execute(query)
                 self.conn.commit()
                 return True
