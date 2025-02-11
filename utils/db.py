@@ -9,7 +9,6 @@ class Db():
         # Access the environment variables
         self.conn_params = {
             'host': os.getenv('DB_HOST'),
-            'port': os.getenv('DB_PORT'),
             'database': os.getenv('DB_NAME'),
             'user': os.getenv('DB_USER'),
             'password': os.getenv('DB_PASSWORD')
@@ -486,8 +485,11 @@ class Db():
         self.ensure_connection()
         try:
             with self.conn.cursor() as cursor:
-                query = f"""CREATE TABLE IF NOT EXISTS {self.schema}.{name}_{polling_station_id.replace('-', '_')} 
-                PARTITION OF {self.schema}.{name} FOR VALUES IN ('{polling_station_id}')"""
+                query = f"""
+                CREATE TABLE IF NOT EXISTS {self.schema}.{name}_{polling_station_id.replace('-', '_')} 
+                PARTITION OF {self.schema}.{name} FOR VALUES IN ('{polling_station_id}')
+                """
+                print(query)
                 cursor.execute(query)
                 self.conn.commit()
                 return True
