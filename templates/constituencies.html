@@ -12,7 +12,7 @@
                         <form id="filterForm" method="GET" class="form-group form-group-default">
                             <label>Filter by County</label>                                
                             <select class="form-control input-sm" id="county" name="county" required>
-                                <option value="" >ALL COUNTIES</option>
+                                <option value="" >All Counties</option>
                                 {% for name in county_names %}
                                 <option value="{{ name }}" {{ 'selected' if county_name==name }}>{{ name }}</option>
                                 {% endfor %}
