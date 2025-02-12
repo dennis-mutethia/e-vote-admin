@@ -13,7 +13,7 @@
                             <div class="form-group form-group-default">
                                 <label>Filter by County</label>                                
                                 <select class="form-control input-sm" id="county" name="county" required>
-                                    <option value="" disabled>ALL COUNTIES</option>
+                                    <option value="" disabled>All Counties</option>
                                     {% for name in county_names %}
                                     <option value="{{ name }}" {{ 'selected' if county_name==name }}>{{ name }}</option>
                                     {% endfor %}
@@ -24,7 +24,7 @@
                             <div class="form-group form-group-default">
                                 <label>Filter by Constituency</label>                                
                                 <select class="form-control input-sm" id="constituency" name="constituency">
-                                    <option value="">Select Constituency</option>
+                                    <option value="">All Constituencies</option>
                                     {% for name in constituency_names %}
                                     <option value="{{ name }}" {{ 'selected' if constituency_name==name }}>{{ name }}</option>
                                     {% endfor %}
