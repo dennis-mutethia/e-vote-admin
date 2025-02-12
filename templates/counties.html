@@ -7,11 +7,6 @@
             <div class="card-header">
                 <div class="d-flex align-items-center">
                     <h4 class="card-title">Counties</h4>
-                    <button class="btn btn-success btn-round ml-auto" data-toggle="modal" data-target="#addCountyModal"
-                        onclick="addCounty()">
-                        <i class="fa fa-plus"></i>
-                        Add County
-                    </button>
                 </div>
             </div>
             <div class="card-body">
@@ -24,7 +19,6 @@
                                 <th class="text-center">CONSTITUENCIES</th>
                                 <th class="text-center">WARDS</th>
                                 <th class="text-center">POLLING STATIONS</th>
-                                <th class="text-center" style="width: 10%">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -47,28 +41,11 @@
                                     {% endif %}
                                 </td>
                                 <td class="text-center">
-                                    {% if county.ttl_stations %}
-                                        <a href="{{ url_for('polling_stations', county=county.id) }}">{{ county.ttl_stations }}</a>
+                                    {% if county.ttl_polling_stations %}
+                                        <a href="{{ url_for('polling_stations', county=county.id) }}">{{ county.ttl_polling_stations }}</a>
                                     {% else %}
                                         0
                                     {% endif %}
-                                </td>
-                                <td>
-                                    <div class="form-button-action">
-                                        <button type="button" title="Edit this County" data-toggle="modal"
-                                            data-target="#addCountyModal"
-                                            onclick="editCounty('{{ county.id }}', {{ county.code }}, '{{ county.name }}')"
-                                            class="btn btn-link btn-primary btn-lg"
-                                            data-original-title="Edit this County">
-                                            <i class="fa fa-edit"></i>
-                                        </button>
-                                        <button type="button" title="Remove this County" data-toggle="modal"
-                                            data-target="#removeCountyModal"
-                                            onclick="removeCounty('{{ county.id }}', '{{ county.name }}')"
-                                            class="btn btn-link btn-danger" data-original-title="Remove this County">
-                                            <i class="fa fa-times"></i>
-                                        </button>
-                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -80,81 +57,6 @@
     </div>
 </div>
 
-<!-- Modals -->
-<div class="modal fade" id="addCountyModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <form method="POST">
-                <input id="editCountyId" name="editCountyId" type="hidden">
-                <div class="modal-header no-bd">
-                    <h5 class="modal-title">
-                        <span id="action_label" class="fw-mediumbold">
-                            Add New</span>
-                        <span class="fw-light">
-                            County
-                        </span>
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <div class="form-group form-group-default">
-                                <label>County Code</label>
-                                <input id="CountyCode" name="CountyCode" type="number"
-                                    class="form-control" placeholder="County Code" required>
-                            </div>
-                        </div>
-                        <div class="col-sm-12">
-                            <div class="form-group form-group-default">
-                                <label>County Name</label>
-                                <input id="CountyName" name="CountyName" type="text"
-                                    class="form-control" placeholder="County Name" required>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer no-bd">
-                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-                    <button type="submit" id="addCountyButton" name="action" value="add"
-                        class="btn btn-success">Save</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<div class="modal fade" id="removeCountyModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <form method="POST">
-                <input id="removeCountyId" name="removeCountyId" type="hidden">
-                <div class="modal-header no-bd">
-                    <h5 class="modal-title">
-                        <span class="fw-mediumbold">
-                            Are you sure you want to Remove </span>
-                        <span class="fw-light" id="removeCountyName"></span>
-                        County
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>Click Confirm Remove to Completely Remove this County.</p>
-                    <small class="text-danger">THIS ACTION IS NOT REVERSIBLE</small>
-                </div>
-                <div class="modal-footer no-bd">
-                    <button type="button" class="btn btn-warning" data-dismiss="modal">Close</button>
-                    <button type="submit" id="removeCountyButton" name="action" value="remove"
-                        class="btn btn-danger">Confirm Remove</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
 <script>
     $(document).ready(function () {
         // Add Row
@@ -162,27 +64,6 @@
             "pageLength": 10,
         });
     });
-
-    function addCounty() {
-        $('#action_label').html('Add New');
-        $('#editCountyId').val(null);
-        $('#CountyCode').val(null);
-        $('#CountyName').val(null);
-        $('#addCountyButton').val('add');
-    }
-
-    function editCounty(id, code, name) {
-        $('#action_label').html('Edit');
-        $('#editCountyId').val(id);
-        $('#CountyCode').val(code);
-        $('#CountyName').val(name);
-        $('#addCountyButton').val('edit');
-    }
-
-    function removeCounty(id, name) {
-        $('#removeCountyId').val(id);
-        $('#removeCountyName').html(name);
-    }
 </script>
 
 {% endblock %}

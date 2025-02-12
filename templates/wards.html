@@ -7,36 +7,31 @@
             <div class="card-header">
                 <div class="d-flex align-items-center">
                     <h4 class="card-title">Polling Stations</h4>
-                    <form id="filterForm" class="row card-title ml-auto" method="GET">
-                        <div class="col-6 text-center">
+                    <form id="filterForm" class="row card-title" method="GET">
+                        <div class="col-2 text-center"></div>
+                        <div class="col-5 text-center">
                             <div class="form-group form-group-default">
                                 <label>Filter by County</label>                                
-                                <select class="form-control input-sm" name="county" required onchange="document.getElementById('filterForm').submit()">
-                                    <option value="">Select County</option>
-                                    {% for county in counties %}
-                                    <option value="{{ county.id }}" {{ 'selected' if county_id==county.id }} >{{ county.name }}</option>
+                                <select class="form-control input-sm" id="county" name="county" required>
+                                    <option value="" >ALL COUNTIES</option>
+                                    {% for name in county_names %}
+                                    <option value="{{ name }}" {{ 'selected' if county_name==name }}>{{ name }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
                         </div>                        
-                        <div class="col-6 text-center">
+                        <div class="col-5 text-center">
                             <div class="form-group form-group-default">
                                 <label>Filter by Constituency</label>                                
-                                <select class="form-control input-sm" name="constituency" required onchange="document.getElementById('filterForm').submit()">
+                                <select class="form-control input-sm" id="constituency" name="constituency">
                                     <option value="">Select Constituency</option>
-                                    {% for constituency in constituencies %}
-                                    <option value="{{ constituency.id }}" {{ 'selected' if constituency_id==constituency.id }} >{{ constituency.name }}</option>
+                                    {% for name in constituency_names %}
+                                    <option value="{{ name }}" {{ 'selected' if constituency_name==name }}>{{ name }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
                         </div>
                     </form>
-
-                    <button class="btn btn-success btn-round ml-auto" data-toggle="modal" data-target="#addWardModal"
-                        onclick="addWard()">
-                        <i class="fa fa-plus"></i>
-                        Add Ward
-                    </button>
                 </div>
             </div>
             <div class="card-body">
@@ -47,8 +42,8 @@
                                 <th class="text-center">CODE</th>
                                 <th>WARD NAME</th>
                                 <th>CONSTITUENCY NAME</th>
-                                <th class="text-center">STATIONS</th>
-                                <th class="text-center" style="width: 10%">Action</th>
+                                <th>COUNTY NAME</th>
+                                <th class="text-center">POLLING STATIONS</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -56,30 +51,14 @@
                             <tr>
                                 <td class="text-center">{{ '%03d' % ward.code }}</td>
                                 <td>{{ ward.name }}</td>
-                                <td>{{ ward.constituency_name }}</td>                          
+                                <td>{{ ward.parent }}</td>  
+                                <td>{{ ward.grand_parent }}</td>                          
                                 <td class="text-center">
-                                    {% if ward.ttl_stations %}
-                                        <a href="{{ url_for('polling_stations', ward=ward.id) }}">{{ ward.ttl_stations }}</a>
+                                    {% if ward.ttl_polling_stations %}
+                                        <a href="{{ url_for('polling_stations', ward=ward.id) }}">{{ ward.ttl_polling_stations }}</a>
                                     {% else %}
                                         0
                                     {% endif %}
-                                </td>
-                                <td>
-                                    <div class="form-button-action">
-                                        <button type="button" title="Edit this Ward" data-toggle="modal"
-                                            data-target="#addWardModal"
-                                            onclick="editWard('{{ ward.id }}', {{ ward.code }}, '{{ ward.name }}', '{{ ward.constituency_name }}')"
-                                            class="btn btn-link btn-primary btn-lg"
-                                            data-original-title="Edit this Ward">
-                                            <i class="fa fa-edit"></i>
-                                        </button>
-                                        <button type="button" title="Remove this Ward" data-toggle="modal"
-                                            data-target="#removeWardModal"
-                                            onclick="removeWard('{{ ward.id }}', '{{ ward.name }}')"
-                                            class="btn btn-link btn-danger" data-original-title="Remove this Ward">
-                                            <i class="fa fa-times"></i>
-                                        </button>
-                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -91,122 +70,27 @@
     </div>
 </div>
 
-<!-- Modals -->
-<div class="modal fade" id="addWardModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <form method="POST">
-                <input id="editWardId" name="editWardId" type="hidden">
-                <div class="modal-header no-bd">
-                    <h5 class="modal-title">
-                        <span id="action_label" class="fw-mediumbold">
-                            Add New</span>
-                        <span class="fw-light">
-                            Ward
-                        </span>
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <div class="form-group form-group-default">
-                                <label>Ward Code</label>
-                                <input id="WardCode" name="WardCode" type="number"
-                                    class="form-control" placeholder="Type Ward Code Here" required>
-                            </div>
-                        </div>
-                        <div class="col-sm-12">
-                            <div class="form-group form-group-default">
-                                <label>Ward Name</label>
-                                <input id="WardName" name="WardName" type="text"
-                                    class="form-control" placeholder="Type Ward Name Here" required>
-                            </div>
-                        </div>
-                        <div class="col-sm-12">
-                            <div class="form-group form-group-default">
-                                <label>Select Constituency</label>                                
-                                <select class="form-control input-sm" name="ConstituencyId" id="ConstituencyId" required>
-                                    {% for constituency in constituencies %}
-                                    <option value="{{ constituency.id }}" {{ 'selected' if constituency_id==constituency.id }} >{{ constituency.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer no-bd">
-                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-                    <button type="submit" id="addWardButton" name="action" value="add"
-                        class="btn btn-success">Save</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<div class="modal fade" id="removeWardModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <form method="POST">
-                <input id="removeWardId" name="removeWardId" type="hidden">
-                <div class="modal-header no-bd">
-                    <h5 class="modal-title">
-                        <span class="fw-mediumbold">
-                            Are you sure you want to Remove </span>
-                        <span class="fw-light" id="removeWardName"></span>
-                        Ward
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>Click Confirm Remove to Completely Remove this Ward.</p>
-                    <small class="text-danger">THIS ACTION IS NOT REVERSIBLE</small>
-                </div>
-                <div class="modal-footer no-bd">
-                    <button type="button" class="btn btn-warning" data-dismiss="modal">Close</button>
-                    <button type="submit" id="removeWardButton" name="action" value="remove"
-                        class="btn btn-danger">Confirm Remove</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
 <script>
     $(document).ready(function () {
         // Add Row
         $('#add-row').DataTable({
             "pageLength": 10,
         });
+        
+        $('#county').on('change', function() {
+            // Reset
+            $('#constituency').val(null);
+            
+            // Submit the form
+            $('#filterForm').submit();
+        });
+        
+        $('#constituency').on('change', function() {
+            // Submit the form
+            $('#filterForm').submit();
+        });
+
     });
-
-    function addWard() {
-        $('#action_label').html('Add New');
-        $('#editWardId').val(null);
-        $('#WardCode').val(null);
-        $('#WardName').val(null);
-        $('#addWardButton').val('add');
-    }
-
-    function editWard(id, code, name, constituency_name) {
-        $('#action_label').html('Edit');
-        $('#editWardId').val(id);
-        $('#WardCode').val(code);
-        $('#WardName').val(name);
-        $('#ConstituencyId option').filter(function () {
-            return $(this).text() === constituency_name;
-        }).prop('selected', true);
-        $('#addWardButton').val('edit');
-    }
-
-    function removeWard(id, name) {
-        $('#removeWardId').val(id);
-        $('#removeWardName').html(name);
-    }
 </script>
 
 {% endblock %}

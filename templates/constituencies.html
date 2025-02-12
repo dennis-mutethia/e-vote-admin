@@ -11,20 +11,14 @@
                     <div class="col-sm-4 text-center">
                         <form id="filterForm" method="GET" class="form-group form-group-default">
                             <label>Filter by County</label>                                
-                            <select class="form-control input-sm" name="county" required onchange="document.getElementById('filterForm').submit()">
+                            <select class="form-control input-sm" id="county" name="county" required>
                                 <option value="" >ALL COUNTIES</option>
-                                {% for county in counties %}
-                                <option value="{{ county.id }}" {{ 'selected' if county_id==county.id }}>{{ county.name }}</option>
+                                {% for name in county_names %}
+                                <option value="{{ name }}" {{ 'selected' if county_name==name }}>{{ name }}</option>
                                 {% endfor %}
                             </select>
                         </form>
                     </div>
-
-                    <button class="btn btn-success btn-round ml-auto" data-toggle="modal" data-target="#addConstituencyModal"
-                        onclick="addConstituency()">
-                        <i class="fa fa-plus"></i>
-                        Add Constituency
-                    </button>
                 </div>
             </div>
             <div class="card-body">
@@ -37,7 +31,6 @@
                                 <th>COUNTY NAME</th>
                                 <th class="text-center">WARDS</th>
                                 <th class="text-center">POLLING STATIONS</th>
-                                <th class="text-center" style="width: 10%">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -45,7 +38,7 @@
                             <tr>
                                 <td class="text-center">{{ '%03d' % constituency.code }}</td>
                                 <td>{{ constituency.name }}</td>
-                                <td>{{ constituency.county_name }}</td>                                
+                                <td>{{ constituency.parent }}</td>                                
                                 <td class="text-center">
                                     {% if constituency.ttl_wards %}
                                         <a href="{{ url_for('wards', constituency=constituency.id) }}">{{ constituency.ttl_wards }}</a>
@@ -55,28 +48,11 @@
                                 </td>
                                 
                                 <td class="text-center">
-                                    {% if constituency.ttl_stations %}
-                                        <a href="{{ url_for('polling_stations', constituency=constituency.id) }}">{{ constituency.ttl_stations }}</a>
+                                    {% if constituency.ttl_polling_stations %}
+                                        <a href="{{ url_for('polling_stations', constituency=constituency.id) }}">{{ constituency.ttl_polling_stations }}</a>
                                     {% else %}
                                         0
                                     {% endif %}
-                                </td>
-                                <td>
-                                    <div class="form-button-action">
-                                        <button type="button" title="Edit this Constituency" data-toggle="modal"
-                                            data-target="#addConstituencyModal"
-                                            onclick="editConstituency('{{ constituency.id }}', {{ constituency.code }}, '{{ constituency.name }}', '{{ constituency.county_name }}')"
-                                            class="btn btn-link btn-primary btn-lg"
-                                            data-original-title="Edit this Constituency">
-                                            <i class="fa fa-edit"></i>
-                                        </button>
-                                        <button type="button" title="Remove this Constituency" data-toggle="modal"
-                                            data-target="#removeConstituencyModal"
-                                            onclick="removeConstituency('{{ constituency.id }}', '{{ constituency.name }}')"
-                                            class="btn btn-link btn-danger" data-original-title="Remove this Constituency">
-                                            <i class="fa fa-times"></i>
-                                        </button>
-                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -88,122 +64,18 @@
     </div>
 </div>
 
-<!-- Modals -->
-<div class="modal fade" id="addConstituencyModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <form method="POST">
-                <input id="editConstituencyId" name="editConstituencyId" type="hidden">
-                <div class="modal-header no-bd">
-                    <h5 class="modal-title">
-                        <span id="action_label" class="fw-mediumbold">
-                            Add New</span>
-                        <span class="fw-light">
-                            Constituency
-                        </span>
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <div class="form-group form-group-default">
-                                <label>Constituency Code</label>
-                                <input id="ConstituencyCode" name="ConstituencyCode" type="number"
-                                    class="form-control" placeholder="Type Constituency Code Here" required>
-                            </div>
-                        </div>
-                        <div class="col-sm-12">
-                            <div class="form-group form-group-default">
-                                <label>Constituency Name</label>
-                                <input id="ConstituencyName" name="ConstituencyName" type="text"
-                                    class="form-control" placeholder="Type Constituency Name Here" required>
-                            </div>
-                        </div>
-                        <div class="col-sm-12">
-                            <div class="form-group form-group-default">
-                                <label>Select County</label>                                
-                                <select class="form-control input-sm" name="CountyId" id="CountyId" required>
-                                    {% for county in counties %}
-                                    <option value="{{ county.id }}" {{ 'selected' if county_id==county.id }}>{{ county.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer no-bd">
-                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-                    <button type="submit" id="addConstituencyButton" name="action" value="add"
-                        class="btn btn-success">Save</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<div class="modal fade" id="removeConstituencyModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <form method="POST">
-                <input id="removeConstituencyId" name="removeConstituencyId" type="hidden">
-                <div class="modal-header no-bd">
-                    <h5 class="modal-title">
-                        <span class="fw-mediumbold">
-                            Are you sure you want to Remove </span>
-                        <span class="fw-light" id="removeConstituencyName"></span>
-                        Constituency
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>Click Confirm Remove to Completely Remove this Constituency.</p>
-                    <small class="text-danger">THIS ACTION IS NOT REVERSIBLE</small>
-                </div>
-                <div class="modal-footer no-bd">
-                    <button type="button" class="btn btn-warning" data-dismiss="modal">Close</button>
-                    <button type="submit" id="removeConstituencyButton" name="action" value="remove"
-                        class="btn btn-danger">Confirm Remove</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
 <script>
     $(document).ready(function () {
         // Add Row
         $('#add-row').DataTable({
             "pageLength": 10,
         });
+        
+        $('#county').on('change', function() {
+            // Submit the form
+            $('#filterForm').submit();
+        });
     });
-
-    function addConstituency() {
-        $('#action_label').html('Add New');
-        $('#editConstituencyId').val(null);
-        $('#ConstituencyCode').val(null);
-        $('#ConstituencyName').val(null);
-        $('#addConstituencyButton').val('add');
-    }
-
-    function editConstituency(id, code, name, county_name) {
-        $('#action_label').html('Edit');
-        $('#editConstituencyId').val(id);
-        $('#ConstituencyCode').val(code);
-        $('#ConstituencyName').val(name);
-        $('#CountyId option').filter(function () {
-            return $(this).text() === county_name;
-        }).prop('selected', true);
-        $('#addConstituencyButton').val('edit');
-    }
-
-    function removeConstituency(id, name) {
-        $('#removeConstituencyId').val(id);
-        $('#removeConstituencyName').html(name);
-    }
 </script>
 
 {% endblock %}

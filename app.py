@@ -2,24 +2,15 @@ import os, random
 from dotenv import load_dotenv
 from flask import Flask, redirect, render_template, url_for, request, jsonify 
 
-
-from utils.db import Db
-from utils.dashboard import Dashboard
-from utils.counties import Counties
-from utils.constituencies import Constituencies
-from utils.wards import Wards
-from utils.polling_stations import PollingStations
-from utils.voters_register import VotersRegister
-from utils.candidates import Candidates
-from utils.election_types import ElectionTypes
-from utils.parties import Parties
+#from utils.dashboard import Dashboard
+from utils.data import Data 
 
 load_dotenv()
 
 app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 31536000  # One year in seconds
 
-db = Db()
+data = Data()
 
 # Routes
 @app.route('/')
@@ -32,35 +23,53 @@ def dashboard():
 
 @app.route('/counties', methods=['GET', 'POST'])
 def counties(): 
-    return Counties(db)() 
+    counties = data.get_counties()
+    return render_template('counties.html', counties=counties, menu='electoral_units', page='counties')
 
 @app.route('/constituencies', methods=['GET', 'POST'])
-def constituencies(): 
-    return Constituencies(db)() 
+def constituencies():
+    county_names = sorted(data.get_county_names())
+    county_name = request.args.get('county') or None 
+    constituencies = data.get_constituencies(county_name)
+    return render_template('constituencies.html', county_name=county_name, county_names=county_names, constituencies=constituencies, menu='electoral_units', page='constituencies')
 
 @app.route('/wards', methods=['GET', 'POST'])
 def wards(): 
-    return Wards(db)() 
+    county_names = sorted(data.get_county_names())
+    county_name = request.args.get('county') or None 
+    constituency_name = request.args.get('constituency') or None 
+    wards, constituency_names = data.get_wards(county_name=county_name, constituency_name=constituency_name)
+    return render_template('wards.html', county_name=county_name, county_names=county_names, constituency_names=constituency_names, constituency_name=constituency_name, wards=wards, menu='electoral_units', page='wards')
 
 @app.route('/polling-stations', methods=['GET', 'POST'])
 def polling_stations(): 
-    return PollingStations(db)() 
+    county_names = sorted(data.get_county_names())
+    county_name = request.args.get('county', county_names[0]) 
+    constituency_name = request.args.get('constituency') or None 
+    ward_name = request.args.get('ward') or None 
+    polling_stations, ward_names, constituency_names = data.get_polling_stations(county_name=county_name, constituency_name=constituency_name, ward_name=ward_name)
+    return render_template('polling-stations.html', county_name=county_name, county_names=county_names, constituency_names=constituency_names, constituency_name=constituency_name, 
+                           ward_names=ward_names, ward_name=ward_name, polling_stations=polling_stations, menu='electoral_units', page='polling_stations')
 
 @app.route('/voters-register', methods=['GET', 'POST'])
 def voters_register(): 
-    return VotersRegister(db)() 
+    data.get_counties()
+    return render_template('counties.html', counties=counties, menu='electoral_units', page='counties')
 
 @app.route('/candidates', methods=['GET', 'POST'])
 def candidates(): 
-    return Candidates(db)() 
+    data.get_counties()
+    return render_template('counties.html', counties=counties, menu='electoral_units', page='counties') 
 
 @app.route('/election-types', methods=['GET', 'POST'])
 def election_types(): 
-    return ElectionTypes(db)() 
+    data.get_counties()
+    return render_template('counties.html', counties=counties, menu='electoral_units', page='counties')
 
 @app.route('/parties', methods=['GET', 'POST'])
 def parties(): 
-    return Parties(db)() 
+    data.get_counties()
+    return render_template('counties.html', counties=counties, menu='electoral_units', page='counties')
 
 if __name__ == '__main__':
     debug_mode = os.getenv('IS_DEBUG', 'False') in ['True', 'T', 't', '1']
