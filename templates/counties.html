@@ -28,21 +28,21 @@
                                 <td>{{ county.name }}</td>
                                 <td class="text-center">
                                     {% if county.ttl_constituencies %}
-                                        <a href="{{ url_for('constituencies', county=county.id) }}">{{ county.ttl_constituencies }}</a>
+                                        <a href="{{ url_for('constituencies', county=county.name) }}">{{ county.ttl_constituencies }}</a>
                                     {% else %}
                                         0
                                     {% endif %}
                                 </td>
                                 <td class="text-center">
                                     {% if county.ttl_wards %}
-                                        <a href="{{ url_for('wards', county=county.id) }}">{{ county.ttl_wards }}</a>
+                                        <a href="{{ url_for('wards', county=county.name) }}">{{ county.ttl_wards }}</a>
                                     {% else %}
                                         0
                                     {% endif %}
                                 </td>
                                 <td class="text-center">
                                     {% if county.ttl_polling_stations %}
-                                        <a href="{{ url_for('polling_stations', county=county.id) }}">{{ county.ttl_polling_stations }}</a>
+                                        <a href="{{ url_for('polling_stations', county=county.name) }}">{{ county.ttl_polling_stations }}</a>
                                     {% else %}
                                         0
                                     {% endif %}

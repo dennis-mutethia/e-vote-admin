@@ -55,7 +55,7 @@
                                 <td>{{ ward.grand_parent }}</td>                          
                                 <td class="text-center">
                                     {% if ward.ttl_polling_stations %}
-                                        <a href="{{ url_for('polling_stations', ward=ward.id) }}">{{ ward.ttl_polling_stations }}</a>
+                                        <a href="{{ url_for('polling_stations', county=ward.grand_parent, constituency=ward.parent, ward=ward.name) }}">{{ ward.ttl_polling_stations }}</a>
                                     {% else %}
                                         0
                                     {% endif %}

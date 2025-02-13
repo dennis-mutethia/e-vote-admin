@@ -19,7 +19,7 @@ def index():
 
 @app.route('/dashboard', methods=['GET'])
 def dashboard(): 
-    return Dashboard(db)() 
+    return render_template('dashboard.html', registered_voters=0)
 
 @app.route('/counties', methods=['GET', 'POST'])
 def counties(): 
@@ -52,9 +52,17 @@ def polling_stations():
                            ward_names=ward_names, ward_name=ward_name, polling_stations=polling_stations, menu='electoral_units', page='polling_stations')
 
 @app.route('/voters-register', methods=['GET', 'POST'])
-def voters_register(): 
-    data.get_counties()
-    return render_template('counties.html', counties=counties, menu='electoral_units', page='counties')
+def voters_register():     
+    county_names = sorted(data.get_county_names())
+    county_name = request.args.get('county', county_names[0]) 
+    constituency_name = request.args.get('constituency') or None 
+    ward_name = request.args.get('ward') or None 
+    polling_station_name = request.args.get('polling_station_name') or None 
+    voters, polling_station_name, polling_station_names, ward_names, constituency_names = data.get_voters(county_name=county_name, constituency_name=constituency_name, ward_name=ward_name, polling_station_name=polling_station_name)
+    return render_template('voters-register.html', county_name=county_name, county_names=county_names, constituency_names=constituency_names, constituency_name=constituency_name, 
+                           ward_names=ward_names, ward_name=ward_name, polling_station_names=polling_station_names, polling_station_name=polling_station_name, voters=voters,
+                           menu='voters_register')
+
 
 @app.route('/candidates', methods=['GET', 'POST'])
 def candidates(): 

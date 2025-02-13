@@ -1,14 +1,17 @@
 import csv, os
 
 class Unit():
-    def __init__(self, id, code, name, parent=None, grand_parent=None, great_grand_parent=None, ttl_constituencies=0, ttl_wards=0, ttl_polling_stations=0):
+    def __init__(self, id, code, name, parent=None, grand_parent=None, great_grand_parent=None, great_great_grand_parent=None, ttl_constituencies=0, ttl_wards=0, ttl_polling_stations=0):
         self.id = id
         self.code = int(code)
         self.name = name
         self.parent = parent
         self.grand_parent = grand_parent
         self.great_grand_parent = great_grand_parent
+        self.great_great_grand_parent = great_great_grand_parent
         self.ttl_constituencies = ttl_constituencies
+        self.ttl_wards = ttl_wards
+        self.ttl_polling_stations = ttl_polling_stations
         
     def __hash__(self):
         return hash((self.id, self.code, self.name))
@@ -150,7 +153,7 @@ class Data:
             return wards, constituency_names
         except Exception as e:
             print(f"An error occurred: {e}")
-            return set(), []  # Return an empty set for wards
+            return set(), set()
         
     def get_polling_stations(self, county_name=None, constituency_name=None, ward_name = None):
         try:
@@ -200,4 +203,37 @@ class Data:
             return polling_stations, ward_names, constituency_names
         except Exception as e:
             print(f"An error occurred: {e}")
-            return set(), []  # Return an empty set for polling_stations
+            return set(), set(), set()
+        
+    def get_voters(self, county_name, constituency_name, ward_name, polling_station_name):
+        try:
+            voters = set()
+            polling_station_names = set()
+            ward_names = set()
+            constituency_names = set()
+            file_path = f'{self.dir}/voters/{county_name}'
+            if os.path.exists(file_path):
+                constituency_names = [f for f in os.listdir(file_path) if os.path.isdir(os.path.join(file_path, f))]
+                constituency_name = constituency_name if constituency_name else constituency_names[0]
+                file_path = f'{file_path}/{constituency_name}'
+                if os.path.exists(file_path):
+                    ward_names = [f for f in os.listdir(file_path) if os.path.isdir(os.path.join(file_path, f))]
+                    ward_name = ward_name if ward_name else ward_names[0]
+                    file_path = f'{file_path}/{ward_name}'
+                    if os.path.exists(file_path):
+                        polling_station_names = [os.path.splitext(f)[0] for f in os.listdir(file_path) if os.path.isfile(os.path.join(file_path, f)) and f.endswith('.csv')]
+                        polling_station_name = polling_station_name if polling_station_name else polling_station_names[0]
+                        file_path = f'{file_path}/{polling_station_name}.csv'
+                        if os.path.isfile(file_path):
+                            with open(file_path, 'r') as file:
+                                csv_reader = csv.reader(file)                             
+                                for row in csv_reader:
+                                    name = f'{row[3]} {row[4]} {row[5]}'
+                                    voter = Unit(row[0], row[1], name, polling_station_name, ward_name, constituency_name, county_name)
+                                    voter.phone = row[6]
+                                    voters.add(voter)
+                        
+            return voters, polling_station_name, polling_station_names, ward_names, constituency_names
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return set(), set(), set(), set() 

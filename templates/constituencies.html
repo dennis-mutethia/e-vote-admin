@@ -41,7 +41,7 @@
                                 <td>{{ constituency.parent }}</td>                                
                                 <td class="text-center">
                                     {% if constituency.ttl_wards %}
-                                        <a href="{{ url_for('wards', constituency=constituency.id) }}">{{ constituency.ttl_wards }}</a>
+                                        <a href="{{ url_for('wards', county=constituency.parent, constituency=constituency.name) }}">{{ constituency.ttl_wards }}</a>
                                     {% else %}
                                         0
                                     {% endif %}
@@ -49,7 +49,7 @@
                                 
                                 <td class="text-center">
                                     {% if constituency.ttl_polling_stations %}
-                                        <a href="{{ url_for('polling_stations', constituency=constituency.id) }}">{{ constituency.ttl_polling_stations }}</a>
+                                        <a href="{{ url_for('polling_stations', county=constituency.parent, constituency=constituency.name) }}">{{ constituency.ttl_polling_stations }}</a>
                                     {% else %}
                                         0
                                     {% endif %}
